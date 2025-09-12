@@ -1,0 +1,12 @@
+body {
+  font-family: sans-serif;
+  background: #0a0a0a;
+  color: #00ffcc;
+  text-align: center;
+  padding: 20px;
+}
+select, button {
+  margin-top: 15px;
+  padding: 10px;
+  font-size: 1em;
+}
