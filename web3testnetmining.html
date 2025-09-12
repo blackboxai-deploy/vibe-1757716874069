@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Web3Wallet Mining DApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+      color: #e2e2e2;
+      min-height: 100vh;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #059669, #10b981);
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+    .mining-animation {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .status-online { color: #10b981; }
+    .status-offline { color: #ef4444; }
+    .hash-display {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
+      border: 1px solid rgba(124, 58, 237, 0.3);
+    }
+  </style>
+</head>
+<body class="p-4">
+  <div class="max-w-4xl mx-auto">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+        Web3 Mining Protocol
+      </h1>
+      <p class="text-gray-400">Decentralized testnet mining simulation</p>
+    </header>
+
+    <!-- Wallet Connection Panel -->
+    <div class="glass-panel rounded-xl p-6 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Wallet Connection</h2>
+        <div id="connection-status" class="flex items-center gap-2">
+          <div id="status-dot" class="w-3 h-3 rounded-full status-offline"></div>
+          <span id="status-text">Disconnected</span>
+        </div>
+      </div>
+      
+      <div id="wallet-section">
+        <button id="connect-wallet" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+          Connect MetaMask
+        </button>
+        <div id="wallet-info" class="hidden">
+          <div class="bg-gray-800 rounded-lg p-4">
+            <p class="text-sm text-gray-400 mb-1">Connected Account:</p>
+            <p id="wallet-address" class="font-mono text-sm break-all"></p>
+            <p class="text-sm text-gray-400 mt-2 mb-1">Balance:</p>
+            <p id="wallet-balance" class="font-semibold text-green-400"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network Selection -->
+    <div class="glass-panel rounded-xl p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Network Configuration</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Mining Network:</label>
+          <select id="mining-network" class="w-full p-3 rounded-lg bg-gray-800 border border-purple-500/30 focus:border-purple-500">
+            <option value="sepolia">Sepolia Testnet</option>
+            <option value="goerli">Goerli Testnet</option>
+            <option value="mumbai">Polygon Mumbai</option>
+            <option value="bsc-testnet">BSC Testnet</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Difficulty:</label>
+          <select id="mining-difficulty" class="w-full p-3 rounded-lg bg-gray-800 border border-purple-500/30">
+            <option value="easy">Easy (1-3s)</option>
+            <option value="medium">Medium (3-5s)</option>
+            <option value="hard">Hard (5-8s)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Pool Fee:</label>
+          <input id="pool-fee" type="number" value="2.5" step="0.5" min="0" max="10" 
+                 class="w-full p-3 rounded-lg bg-gray-800 border border-purple-500/30 focus:border-purple-500">
+        </div>
+      </div>
+    </div>
+
+    <!-- Mining Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="stat-card rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-purple-400" id="hashrate">0</div>
+        <div class="text-sm text-gray-400">MH/s</div>
+      </div>
+      <div class="stat-card rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-green-400" id="blocks-mined">0</div>
+        <div class="text-sm text-gray-400">Blocks Found</div>
+      </div>
+      <div class="stat-card rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-yellow-400" id="total-rewards">0.0000</div>
+        <div class="text-sm text-gray-400">ETH Earned</div>
+      </div>
+      <div class="stat-card rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-400" id="mining-time">0:00</div>
+        <div class="text-sm text-gray-400">Runtime</div>
+      </div>
+    </div>
+
+    <!-- Mining Control Panel -->
+    <div class="glass-panel rounded-xl p-6 mb-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Mining Control</h2>
+        <div id="mining-status" class="px-4 py-2 rounded-lg bg-gray-800 text-sm">
+          Status: <span id="status">Idle</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mb-6">
+        <div class="flex justify-between text-sm mb-2">
+          <span>Block Progress</span>
+          <span id="progress-text">0%</span>
+        </div>
+        <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+          <div id="mining-progress" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="flex gap-4 mb-6">
+        <button id="start-mining" class="btn-primary flex-1 py-3 px-6 rounded-lg font-semibold">
+          🚀 Start Mining
+        </button>
+        <button id="stop-mining" class="btn-danger flex-1 py-3 px-6 rounded-lg font-semibold hidden">
+          ⏹️ Stop Mining
+        </button>
+      </div>
+
+      <!-- Current Block Info -->
+      <div id="current-block" class="bg-gray-800 rounded-lg p-4 hidden">
+        <h3 class="font-semibold mb-2">Current Block:</h3>
+        <div class="space-y-2 text-sm">
+          <div>Block #: <span id="block-number" class="font-mono">-</span></div>
+          <div>Nonce: <span id="current-nonce" class="font-mono">0</span></div>
+          <div>Target Hash: <span id="target-hash" class="hash-display">-</span></div>
+          <div>Current Hash: <span id="current-hash" class="hash-display">-</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Blocks -->
+    <div class="glass-panel rounded-xl p-6">
+      <h2 class="text-xl font-semibold mb-4">Recent Blocks</h2>
+      <div id="recent-blocks" class="space-y-3">
+        <div class="text-center text-gray-400 py-8">
+          No blocks mined yet. Start mining to see results!
+        </div>
+      </div>
+    </div>
+
+    <!-- Faucet Links -->
+    <div id="faucet-info" class="glass-panel rounded-xl p-4 mt-6 text-center">
+      <p class="text-sm text-gray-400 mb-2">Need testnet tokens?</p>
+      <div id="faucet-links" class="flex flex-wrap justify-center gap-4">
+        <!-- Faucet links will be populated based on selected network -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class MiningDApp {
+      constructor() {
+        this.provider = null;
+        this.signer = null;
+        this.account = null;
+        this.isMining = false;
+        this.miningInterval = null;
+        this.startTime = null;
+        this.currentNonce = 0;
+        this.blocksFound = 0;
+        this.totalRewards = 0;
+        this.currentHashrate = 0;
+        this.timerInterval = null;
+
+        this.networkConfig = {
+          sepolia: {
+            name: 'Sepolia Testnet',
+            chainId: 11155111,
+            rpcUrl: 'https://sepolia.infura.io/v3/YOUR_KEY',
+            blockReward: 0.0025,
+            faucets: ['https://sepoliafaucet.com/', 'https://faucet.sepolia.dev/']
+          },
+          goerli: {
+            name: 'Goerli Testnet', 
+            chainId: 5,
+            rpcUrl: 'https://goerli.infura.io/v3/YOUR_KEY',
+            blockReward: 0.003,
+            faucets: ['https://goerlifaucet.com/']
+          },
+          mumbai: {
+            name: 'Polygon Mumbai',
+            chainId: 80001,
+            rpcUrl: 'https://rpc-mumbai.maticvigil.com/',
+            blockReward: 0.05,
+            faucets: ['https://faucet.polygon.technology/']
+          },
+          'bsc-testnet': {
+            name: 'BSC Testnet',
+            chainId: 97,
+            rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+            blockReward: 0.004,
+            faucets: ['https://testnet.binance.org/faucet-smart']
+          }
+        };
+
+        this.initializeElements();
+        this.bindEvents();
+        this.updateFaucetLinks();
+      }
+
+      initializeElements() {
+        this.elements = {
+          connectWallet: document.getElementById('connect-wallet'),
+          walletInfo: document.getElementById('wallet-info'),
+          walletAddress: document.getElementById('wallet-address'),
+          walletBalance: document.getElementById('wallet-balance'),
+          statusDot: document.getElementById('status-dot'),
+          statusText: document.getElementById('status-text'),
+          miningNetwork: document.getElementById('mining-network'),
+          startMining: document.getElementById('start-mining'),
+          stopMining: document.getElementById('stop-mining'),
+          miningProgress: document.getElementById('mining-progress'),
+          progressText: document.getElementById('progress-text'),
+          status: document.getElementById('status'),
+          hashrate: document.getElementById('hashrate'),
+          blocksMined: document.getElementById('blocks-mined'),
+          totalRewards: document.getElementById('total-rewards'),
+          miningTime: document.getElementById('mining-time'),
+          currentBlock: document.getElementById('current-block'),
+          blockNumber: document.getElementById('block-number'),
+          currentNonce: document.getElementById('current-nonce'),
+          targetHash: document.getElementById('target-hash'),
+          currentHash: document.getElementById('current-hash'),
+          recentBlocks: document.getElementById('recent-blocks'),
+          faucetLinks: document.getElementById('faucet-links')
+        };
+      }
+
+      bindEvents() {
+        this.elements.connectWallet.addEventListener('click', () => this.connectWallet());
+        this.elements.startMining.addEventListener('click', () => this.startMining());
+        this.elements.stopMining.addEventListener('click', () => this.stopMining());
+        this.elements.miningNetwork.addEventListener('change', () => this.updateFaucetLinks());
+
+        // Check if wallet is already connected
+        if (typeof window.ethereum !== 'undefined') {
+          window.ethereum.request({method: 'eth_accounts'})
+            .then(accounts => {
+              if (accounts.length > 0) {
+                this.connectWallet();
+              }
+            });
+        }
+      }
+
+      async connectWallet() {
+        if (typeof window.ethereum === 'undefined') {
+          alert('Please install MetaMask to use this dApp!');
+          return;
+        }
+
+        try {
+          const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts'
+          });
+
+          this.provider = new ethers.BrowserProvider(window.ethereum);
+          this.signer = await this.provider.getSigner();
+          this.account = accounts[0];
+
+          // Update UI
+          this.elements.connectWallet.classList.add('hidden');
+          this.elements.walletInfo.classList.remove('hidden');
+          this.elements.walletAddress.textContent = this.account;
+          this.elements.statusDot.classList.remove('status-offline');
+          this.elements.statusDot.classList.add('status-online');
+          this.elements.statusText.textContent = 'Connected';
+
+          // Get balance
+          const balance = await this.provider.getBalance(this.account);
+          this.elements.walletBalance.textContent = `${ethers.formatEther(balance)} ETH`;
+
+        } catch (error) {
+          console.error('Failed to connect wallet:', error);
+          alert('Failed to connect wallet. Please try again.');
+        }
+      }
+
+      generateRandomHash(difficulty = 4) {
+        const chars = '0123456789abcdef';
+        let hash = '0x';
+        for (let i = 0; i < 64; i++) {
+          hash += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return hash;
+      }
+
+      generateTargetHash(difficulty = 4) {
+        return '0x' + '0'.repeat(difficulty) + 'f'.repeat(64 - difficulty);
+      }
+
+      checkHashTarget(hash, target) {
+        return hash <= target;
+      }
+
+      startMining() {
+        if (!this.account) {
+          alert('Please connect your wallet first!');
+          return;
+        }
+
+        this.isMining = true;
+        this.startTime = Date.now();
+        this.currentNonce = 0;
+        
+        const difficulty = document.getElementById('mining-difficulty').value;
+        const difficultyMap = { easy: 3, medium: 4, hard: 5 };
+        const targetDifficulty = difficultyMap[difficulty];
+
+        // Update UI
+        this.elements.startMining.classList.add('hidden');
+        this.elements.stopMining.classList.remove('hidden');
+        this.elements.status.textContent = 'Mining...';
+        this.elements.currentBlock.classList.remove('hidden');
+
+        // Generate block info
+        const blockNumber = Math.floor(Math.random() * 1000000) + 17500000;
+        const targetHash = this.generateTargetHash(targetDifficulty);
+        
+        this.elements.blockNumber.textContent = blockNumber.toLocaleString();
+        this.elements.targetHash.textContent = targetHash;
+
+        // Start mining simulation
+        this.miningInterval = setInterval(() => {
+          this.currentNonce++;
+          this.elements.currentNonce.textContent = this.currentNonce.toLocaleString();
+          
+          const currentHash = this.generateRandomHash();
+          this.elements.currentHash.textContent = currentHash;
+
+          // Simulate hashrate (random between 0.5-2.5 MH/s)
+          this.currentHashrate = (Math.random() * 2 + 0.5).toFixed(1);
+          this.elements.hashrate.textContent = this.currentHashrate;
+
+          // Update progress (simulated)
+          const progress = Math.min((this.currentNonce / 1000) * 100, 99);
+          this.elements.miningProgress.style.width = progress + '%';
+          this.elements.progressText.textContent = progress.toFixed(1) + '%';
+
+          // Check if we "found" a block (random chance based on difficulty)
+          const findChance = difficulty === 'easy' ? 0.015 : difficulty === 'medium' ? 0.008 : 0.004;
+          if (Math.random() < findChance || this.currentNonce >= 1500) {
+            this.blockFound(blockNumber, currentHash, targetHash);
+          }
+        }, 100);
+
+        // Start timer
+        this.timerInterval = setInterval(() => {
+          if (this.startTime) {
+            const elapsed = Date.now() - this.startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            this.elements.miningTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          }
+        }, 1000);
+      }
+
+      blockFound(blockNumber, hash, targetHash) {
+        this.blocksFound++;
+        const network = this.elements.miningNetwork.value;
+        const reward = this.networkConfig[network].blockReward;
+        const poolFee = parseFloat(document.getElementById('pool-fee').value) / 100;
+        const actualReward = reward * (1 - poolFee);
+        
+        this.totalRewards += actualReward;
+
+        // Update stats
+        this.elements.blocksMined.textContent = this.blocksFound;
+        this.elements.totalRewards.textContent = this.totalRewards.toFixed(6);
+        this.elements.miningProgress.style.width = '100%';
+        this.elements.progressText.textContent = '100%';
+
+        // Add to recent blocks
+        this.addRecentBlock(blockNumber, hash, actualReward);
+
+        // Celebrate!
+        this.elements.status.textContent = 'Block Found! 🎉';
+        setTimeout(() => {
+          if (this.isMining) {
+            this.elements.status.textContent = 'Mining...';
+          }
+        }, 3000);
+
+        // Reset for next block
+        setTimeout(() => {
+          if (this.isMining) {
+            this.currentNonce = 0;
+            this.elements.miningProgress.style.width = '0%';
+            this.elements.progressText.textContent = '0%';
+            
+            const newBlockNumber = blockNumber + 1;
+            const newTargetHash = this.generateTargetHash();
+            this.elements.blockNumber.textContent = newBlockNumber.toLocaleString();
+            this.elements.targetHash.textContent = newTargetHash;
+          }
+        }, 2000);
+      }
+
+      addRecentBlock(blockNumber, hash, reward) {
+        const blockElement = document.createElement('div');
+        blockElement.className = 'bg-gray-800 rounded-lg p-4 border-l-4 border-green-500';
+        blockElement.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-semibold text-green-400">Block #${blockNumber.toLocaleString()}</div>
+              <div class="text-sm text-gray-400 hash-display">${hash}</div>
+              <div class="text-xs text-gray-500 mt-1">Nonce: ${this.currentNonce.toLocaleString()}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-yellow-400 font-semibold">+${reward.toFixed(6)} ETH</div>
+              <div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `;
+
+        const recentBlocks = this.elements.recentBlocks;
+        if (recentBlocks.children.length === 1 && recentBlocks.children[0].textContent.includes('No blocks')) {
+          recentBlocks.innerHTML = '';
+        }
+
+        recentBlocks.insertBefore(blockElement, recentBlocks.firstChild);
+
+        // Keep only last 5 blocks
+        while (recentBlocks.children.length > 5) {
+          recentBlocks.removeChild(recentBlocks.lastChild);
+        }
+      }
+
+      stopMining() {
+        this.isMining = false;
+        
+        if (this.miningInterval) {
+          clearInterval(this.miningInterval);
+          this.miningInterval = null;
+        }
+        
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+
+        // Update UI
+        this.elements.startMining.classList.remove('hidden');
+        this.elements.stopMining.classList.add('hidden');
+        this.elements.status.textContent = 'Stopped';
+        this.elements.currentBlock.classList.add('hidden');
+        this.elements.miningProgress.style.width = '0%';
+        this.elements.progressText.textContent = '0%';
+        this.elements.hashrate.textContent = '0';
+      }
+
+      updateFaucetLinks() {
+        const network = this.elements.miningNetwork.value;
+        const config = this.networkConfig[network];
+        
+        this.elements.faucetLinks.innerHTML = config.faucets.map(faucet => 
+          `<a href="${faucet}" target="_blank" class="text-purple-400 hover:text-purple-300 underline text-sm">
+            ${config.name} Faucet
+          </a>`
+        ).join('');
+      }
+    }
+
+    // Initialize the DApp when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      new MiningDApp();
+    });
+  </script>
+</body>
+</html>
