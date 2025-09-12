@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mistr Infiniti</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --color-primary: #8A2BE2; /* Cyberpunk Purple */
+            --color-secondary: #FFFF00; /* Neon Yellow */
+            --color-background: #1A0033; /* Dark Purple */
+            --color-text: #E0E0E0;
+            --color-border: #4B0082; /* Darker Purple for borders */
+            --color-input-bg: #2C0055;
+            --color-agent-card-bg: #3A0066;
+            --color-agent-typing: #FFD700; /* Gold for typing indicator */
+            --color-scroll-thumb: #8A2BE2;
+            --color-scroll-track: #2C0055;
+            --color-disabled: #555;
+            --color-error: #ff4444;
+            --color-final-output-bg: #100020;
+            --color-system-message-bg: rgba(0, 255, 255, 0.1); /* Cyan for system messages */
+            --color-system-message-border: #00FFFF;
+
+            --spacing-xs: clamp(0.25rem, 1vw, 0.5rem);
+            --spacing-sm: clamp(0.5rem, 2vw, 1rem);
+            --spacing-md: clamp(1rem, 4vw, 2rem);
+            --spacing-lg: clamp(1.5rem, 6vw, 3rem);
+
+            --font-size-sm: clamp(0.75rem, 2vw, 0.9rem);
+            --font-size-md: clamp(1rem, 2.5vw, 1.1rem);
+            --font-size-lg: clamp(1.25rem, 3vw, 1.5rem);
+            --font-size-xl: clamp(1.75rem, 4vw, 2.25rem);
+            --font-size-xxl: clamp(2.5rem, 6vw, 3rem);
+
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--color-background);
+            font-family: 'Space Mono', 'Courier New', monospace;
+            color: var(--color-text);
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            padding: env(safe-area-inset-top, 35px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 16px);
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            width: min(90vw, 1200px);
+            max-height: 90vh;
+            background-color: var(--color-background);
+            border: 2px solid var(--color-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 0 20px var(--color-primary), 0 0 40px var(--color-primary) inset;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            padding: var(--spacing-md);
+            gap: var(--spacing-sm);
+            box-sizing: border-box;
+        }
+
+        .app-header {
+            text-align: center;
+            color: var(--color-secondary);
+            font-size: var(--font-size-xxl);
+            margin-bottom: var(--spacing-sm);
+            text-shadow: 0 0 8px var(--color-secondary);
+        }
+
+        .agent-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 1px dashed var(--color-border);
+        }
+
+        .agent-card {
+            background-color: var(--color-agent-card-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs);
+            text-align: center;
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 5px rgba(138, 43, 226, 0.3);
+            transition: all 0.2s ease-in-out;
+            min-height: 60px;
+        }
+
+        .agent-card.active {
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 10px var(--color-secondary), 0 0 20px var(--color-secondary) inset;
+            transform: scale(1.02);
+        }
+
+        .agent-card .emoji {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .agent-card .status-indicator {
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-xs);
+            color: var(--color-text);
+        }
+
+        @keyframes typing-pulse {
+            0% { text-shadow: 0 0 0px var(--color-agent-typing); }
+            50% { text-shadow: 0 0 5px var(--color-agent-typing); }
+            100% { text-shadow: 0 0 0px var(--color-agent-typing); }
+        }
+
+        .agent-card.typing .status-indicator {
+            animation: typing-pulse 1.2s infinite alternate;
+            color: var(--color-agent-typing);
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: var(--spacing-xs); /* For scrollbar */
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            scroll-behavior: smooth;
+        }
+
+        .chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-history::-webkit-scrollbar-track {
+            background: var(--color-scroll-track);
+            border-radius: 10px;
+        }
+
+        .chat-history::-webkit-scrollbar-thumb {
+            background: var(--color-scroll-thumb);
+            border-radius: 10px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: var(--font-size-md);
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--color-primary);
+            border: 1px solid var(--color-secondary);
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+        }
+
+        .message.agent {
+            align-self: flex-start;
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-border);
+            box-shadow: 0 0 8px rgba(138, 43, 226, 0.5);
+        }
+
+        .message.final-output {
+            align-self: center;
+            background-color: var(--color-final-output-bg);
+            border: 2px dashed var(--color-secondary);
+            box-shadow: 0 0 15px var(--color-secondary);
+            max-width: 95%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .message.system {
+            align-self: center;
+            background-color: var(--color-system-message-bg);
+            border: 1px solid var(--color-system-message-border);
+            max-width: 95%;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .message-sender {
+            font-weight: bold;
+            color: var(--color-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .message.system .message-sender {
+            color: var(--color-system-message-border);
+        }
+
+        .message-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--color-secondary);
+            cursor: pointer;
+            font-size: var(--font-size-md);
+            padding: 0 var(--spacing-xs);
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+        }
+
+        .message-text {
+            color: var(--color-text);
+            white-space: pre-wrap;
+        }
+
+        .message-timestamp {
+            font-size: var(--font-size-sm);
+            color: rgba(224, 224, 224, 0.6);
+            margin-top: var(--spacing-xs);
+            text-align: right;
+        }
+
+        .input-area {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            padding-top: var(--spacing-sm);
+            border-top: 1px dashed var(--color-border);
+        }
+
+        .input-area input[type="text"] {
+            flex-grow: 1;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--border-radius-md);
+            background-color: var(--color-input-bg);
+            color: var(--color-text);
+            font-family: 'Space Mono', 'Courier New', monospace;
+            font-size: var(--font-size-md);
+            outline: none;
+            box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .input-area input[type="text"]:focus {
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 10px var(--color-secondary);
+        }
+
+        .input-area input[type="text"]:disabled {
+            background-color: #333;
+            border-color: var(--color-error);
+            cursor: not-allowed;
+        }
+
+        .input-area button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: 1px solid var(--color-secondary);
+            border-radius: var(--border-radius-md);
+            font-family: 'Space Mono', 'Courier New', monospace;
+            font-size: var(--font-size-md);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+            min-width: 44px; /* Touch target */
+            min-height: 44px; /* Touch target */
+        }
+
+        .input-area button:hover:not(:disabled) {
+            background-color: var(--color-secondary);
+            color: var(--color-background);
+            box-shadow: 0 0 15px var(--color-secondary);
+            transform: translateY(-2px);
+        }
+
+        .input-area button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 0 5px var(--color-secondary);
+        }
+        
+        .input-area button:disabled {
+            background-color: var(--color-disabled);
+            color: #999;
+            cursor: not-allowed;
+            border-color: #777;
+            box-shadow: none;
+        }
+
+        .utility-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            padding-top: var(--spacing-sm);
+            border-top: 1px dashed var(--color-border);
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+        }
+
+        .status-indicators, .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .utility-bar button {
+            background-color: var(--color-input-bg);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-family: 'Space Mono', 'Courier New', monospace;
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            min-width: 44px; /* Touch target */
+            min-height: 44px; /* Touch target */
+        }
+
+        .utility-bar button:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 8px rgba(138, 43, 226, 0.5);
+        }
+
+        .utility-bar button:active {
+            transform: translateY(1px);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 0, 20, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--spacing-sm);
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background-color: var(--color-background);
+            border: 2px solid var(--color-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 0 25px var(--color-primary);
+            padding: var(--spacing-md);
+            width: min(90vw, 600px);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            color: var(--color-secondary);
+            text-shadow: 0 0 5px var(--color-secondary);
+            margin: 0 0 var(--spacing-sm) 0;
+        }
+
+        .file-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs);
+            border: 1px dashed var(--color-border);
+            border-radius: var(--border-radius-md);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--color-input-bg);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--color-border);
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            word-break: break-all;
+        }
+
+        .file-name {
+            font-weight: bold;
+        }
+
+        .file-size {
+            font-size: var(--font-size-sm);
+            color: rgba(224, 224, 224, 0.7);
+        }
+
+        .delete-file-btn {
+            background: none;
+            border: none;
+            color: var(--color-error);
+            font-size: var(--font-size-lg);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            transition: transform 0.2s ease;
+        }
+
+        .delete-file-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-around;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .modal-button {
+            flex-grow: 1;
+            padding: var(--spacing-sm);
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: 1px solid var(--color-secondary);
+            border-radius: var(--border-radius-md);
+            font-family: 'Space Mono', 'Courier New', monospace;
+            font-size: var(--font-size-md);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .modal-button:hover {
+            background-color: var(--color-secondary);
+            color: var(--color-background);
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                padding: var(--spacing-sm);
+                gap: var(--spacing-xs);
+            }
+            .app-header {
+                font-size: var(--font-size-xl);
+            }
+            .agent-cards-container {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: var(--spacing-xs);
+            }
+            .agent-card {
+                font-size: var(--font-size-sm);
+                min-height: 50px;
+            }
+            .agent-card .emoji {
+                font-size: var(--font-size-md);
+            }
+            .message {
+                font-size: var(--font-size-sm);
+                padding: var(--spacing-xs);
+            }
+            .message-sender, .message-timestamp {
+                font-size: 0.65rem;
+            }
+            .input-area input[type="text"], .input-area button {
+                font-size: var(--font-size-sm);
+                padding: var(--spacing-xs);
+            }
+            .utility-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .status-indicators, .action-buttons {
+                justify-content: space-between;
+            }
+            .action-buttons button {
+                flex-grow: 1;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .agent-cards-container {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1 class="app-header">🌌 Mistr Infiniti 🧠</h1>
+
+        <div class="agent-cards-container" id="agentCards">
+            <!-- Agent cards will be dynamically inserted here -->
+        </div>
+
+        <div class="chat-history" id="chatHistory">
+            <!-- Chat messages will be dynamically inserted here -->
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask Mistr Infiniti anything..." autocomplete="off">
+            <button id="sendMessageButton">➡️ Send</button>
+        </div>
+
+        <div class="utility-bar">
+            <div class="status-indicators">
+                <span id="tokenUsage">Tokens: 0</span>
+                <span id="pointsBalance">Points: 0</span>
+            </div>
+            <div class="action-buttons">
+                <button id="addPointsButton">➕ Add Points</button>
+                <button id="fileManagerButton">📁 Files</button>
+                <button id="exportConversationButton">💾 Export</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fileManagerModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>📁 File Manager</h2>
+            <div id="fileList" class="file-list">
+                <!-- File items will be dynamically inserted here -->
+            </div>
+            <div class="modal-actions">
+                <label for="fileUploadInput" class="modal-button">📤 Upload File</label>
+                <input type="file" id="fileUploadInput" style="display: none;">
+                <button id="closeModalButton" class="modal-button">❌ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.body.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        });
+
+        const APP_STORAGE_KEY = 'MISTR_INFINITI_APP_DATA_V3';
+        window.APP_STORAGE_KEY = APP_STORAGE_KEY;
+
+        const agents = [
+            { id: 'conductor', name: 'Conductor', emoji: '🤖', expertise: 'Orchestrates other agents, sets context.', status: 'idle' },
+            { id: 'neural_architect', name: 'Neural Architect', emoji: '🧠', expertise: 'AI/ML technical expert, model design.', status: 'idle' },
+            { id: 'quantum_oracle', name: 'Quantum Oracle', emoji: '🔮', expertise: 'Probability, analysis, future trends.', status: 'idle' },
+            { id: 'creative_mind', name: 'Creative Mind', emoji: '💡', expertise: 'Innovation, brainstorming, novel ideas.', status: 'idle' },
+            { id: 'logic_reasoner', name: 'Logic Reasoner', emoji: '🧐', expertise: 'Logical analysis, problem decomposition.', status: 'idle' },
+            { id: 'memory_bank', name: 'Memory Bank', emoji: '💾', expertise: 'Context management, information retrieval.', status: 'idle' },
+            { id: 'quality_critic', name: 'Quality Critic', emoji: '🔍', expertise: 'Output evaluation, identifying flaws.', status: 'idle' },
+            { id: 'strategic_planner', name: 'Strategic Planner', emoji: '🗺️', expertise: 'Planning, strategy, goal alignment.', status: 'idle' },
+            { id: 'task_executor', name: 'Task Executor', emoji: '⚙️', expertise: 'Implementation focus, actionable steps.', status: 'idle' },
+            { id: 'result_validator', name: 'Result Validator', emoji: '✅', expertise: 'Quality control, verification.', status: 'idle' },
+            { id: 'performance_optimizer', name: 'Performance Optimizer', emoji: '⚡', expertise: 'Efficiency expert, resource optimization.', status: 'idle' },
+            { id: 'synthesis_engine', name: 'Synthesis Engine', emoji: '✨', expertise: 'Combines all insights, holistic view.', status: 'idle' }
+        ];
+
+        const INITIAL_POINTS = 1000;
+        const MESSAGE_COST = 150;
+        const POINTS_REFILL_AMOUNT = 500;
+
+        let conversation = [];
+        let uploadedFiles = [];
+        let totalTokens = 0;
+        let userPoints = 0;
+        let isProcessing = false;
+        let currentlySpeakingButton = null;
+
+        const chatHistoryDiv = document.getElementById('chatHistory');
+        const userInput = document.getElementById('userInput');
+        const sendMessageButton = document.getElementById('sendMessageButton');
+        const agentCardsContainer = document.getElementById('agentCards');
+        const tokenUsageSpan = document.getElementById('tokenUsage');
+        const pointsBalanceSpan = document.getElementById('pointsBalance');
+        const exportConversationButton = document.getElementById('exportConversationButton');
+        const addPointsButton = document.getElementById('addPointsButton');
+        const fileManagerButton = document.getElementById('fileManagerButton');
+        const fileManagerModal = document.getElementById('fileManagerModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const fileUploadInput = document.getElementById('fileUploadInput');
+        const fileListDiv = document.getElementById('fileList');
+
+        function copyToClipboard(text, buttonElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = buttonElement.innerHTML;
+                buttonElement.innerHTML = '✅ Copied!';
+                setTimeout(() => {
+                    buttonElement.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+        function toggleReadAloud(text, buttonElement) {
+            const synth = window.speechSynthesis;
+            if (synth.speaking && currentlySpeakingButton === buttonElement) {
+                synth.cancel();
+                return;
+            }
+            
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            utterance.onstart = () => {
+                if (currentlySpeakingButton) {
+                    currentlySpeakingButton.innerHTML = '🔊';
+                }
+                buttonElement.innerHTML = '⏹️';
+                currentlySpeakingButton = buttonElement;
+            };
+
+            utterance.onend = () => {
+                buttonElement.innerHTML = '🔊';
+                currentlySpeakingButton = null;
+            };
+            
+            utterance.onerror = () => {
+                 if (currentlySpeakingButton) {
+                    currentlySpeakingButton.innerHTML = '🔊';
+                }
+                currentlySpeakingButton = null;
+            };
+
+            synth.speak(utterance);
+        }
+
+        function updatePointsDisplay() {
+            pointsBalanceSpan.textContent = `Points: ${userPoints}`;
+        }
+
+        function checkPointsAndToggleInput() {
+            const hasEnoughPoints = userPoints >= MESSAGE_COST;
+            const canInteract = hasEnoughPoints && !isProcessing;
+
+            userInput.disabled = !canInteract;
+            sendMessageButton.disabled = !canInteract;
+
+            if (isProcessing) {
+                userInput.placeholder = "Agents are processing...";
+            } else if (!hasEnoughPoints) {
+                userInput.placeholder = `Not enough points! Need ${MESSAGE_COST}.`;
+            } else {
+                userInput.placeholder = "Ask Mistr Infiniti anything...";
+            }
+        }
+        
+        function renderAgentCards() {
+            agentCardsContainer.innerHTML = '';
+            agents.forEach(agent => {
+                const card = document.createElement('div');
+                card.className = `agent-card ${agent.status === 'typing' ? 'typing' : ''}`;
+                card.id = `agent-card-${agent.id}`;
+                card.innerHTML = `
+                    <span class="emoji">${agent.emoji}</span>
+                    <span>${agent.name}</span>
+                    <span class="status-indicator">${agent.status === 'typing' ? 'Typing...' : 'Idle'}</span>
+                `;
+                agentCardsContainer.appendChild(card);
+            });
+        }
+
+        function updateAgentStatusUI(agentId, status) {
+            const agentIndex = agents.findIndex(a => a.id === agentId);
+            if (agentIndex !== -1) {
+                agents[agentIndex].status = status;
+                const card = document.getElementById(`agent-card-${agentId}`);
+                if (card) {
+                    card.className = `agent-card ${status === 'typing' ? 'typing' : ''}`;
+                    card.querySelector('.status-indicator').textContent = status === 'typing' ? 'Typing...' : 'Idle';
+                    if (status === 'typing') {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        function addMessageToChat(sender, agentName, text, timestamp, tokens) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+
+            const senderSpan = document.createElement('span');
+            senderSpan.className = 'message-sender';
+            senderSpan.textContent = agentName;
+            headerDiv.appendChild(senderSpan);
+
+            if (sender !== 'system') {
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'message-controls';
+
+                if (sender === 'agent' || sender === 'final-output') {
+                    const readButton = document.createElement('button');
+                    readButton.className = 'control-btn';
+                    readButton.innerHTML = '🔊';
+                    readButton.onclick = () => toggleReadAloud(text, readButton);
+                    controlsDiv.appendChild(readButton);
+                }
+                
+                if (sender === 'final-output') {
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'control-btn';
+                    copyButton.innerHTML = '📋';
+                    copyButton.onclick = () => copyToClipboard(text, copyButton);
+                    controlsDiv.appendChild(copyButton);
+                }
+                headerDiv.appendChild(controlsDiv);
+            }
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'message-text';
+            textSpan.textContent = text;
+
+            const timestampSpan = document.createElement('span');
+            timestampSpan.className = 'message-timestamp';
+            timestampSpan.textContent = timestamp;
+
+            messageDiv.appendChild(headerDiv);
+            messageDiv.appendChild(textSpan);
+            if (sender !== 'system') {
+                messageDiv.appendChild(timestampSpan);
+            }
+            chatHistoryDiv.appendChild(messageDiv);
+
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+            if (tokens) {
+                updateTokenUsage(tokens);
+            }
+        }
+
+        function updateTokenUsage(newTokens) {
+            totalTokens += newTokens;
+            tokenUsageSpan.textContent = `Tokens: ${totalTokens}`;
+        }
+
+        function saveData() {
+            const dataToSave = {
+                conversation: conversation,
+                totalTokens: totalTokens,
+                userPoints: userPoints,
+                uploadedFiles: uploadedFiles
+            };
+            localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(dataToSave));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(APP_STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                conversation = data.conversation || [];
+                totalTokens = data.totalTokens || 0;
+                userPoints = data.userPoints !== undefined ? data.userPoints : INITIAL_POINTS;
+                uploadedFiles = data.uploadedFiles || [];
+
+                conversation.forEach(msg => {
+                    addMessageToChat(msg.sender, msg.agentName, msg.text, msg.timestamp, 0);
+                });
+                tokenUsageSpan.textContent = `Tokens: ${totalTokens}`;
+            } else {
+                userPoints = INITIAL_POINTS;
+            }
+            updatePointsDisplay();
+            renderAgentCards();
+        }
+
+        function generateAgentResponse(agent, previousResponses, userPrompt) {
+            const lastAgentResponse = previousResponses.length > 0 ? previousResponses[previousResponses.length - 1].text : userPrompt;
+            let response = `As the ${agent.name}, my expertise in ${agent.expertise.toLowerCase()} leads me to consider: `;
+            switch (agent.id) {
+                case 'conductor': response += `"${userPrompt}". Let's break this down. Neural Architect, what are your initial thoughts on the technical approach?`; break;
+                case 'neural_architect': response += `From an AI/ML perspective, we could explore a transformer-based model or a specialized neural network. The data requirements would be significant.`; break;
+                case 'quantum_oracle': response += `Analyzing the probabilities, there's a 65% chance of success with a high-risk, high-reward approach. We need to quantify potential outcomes.`; break;
+                case 'creative_mind': response += `Let's think outside the box! What if we gamified the user interaction or introduced a novel visual element?`; break;
+                case 'logic_reasoner': response += `Logically, we must first define the core problem statement and identify all constraints. What are the absolute non-negotiables?`; break;
+                case 'memory_bank': response += `Recalling our previous discussions and available files, the user's primary goal was X, and we identified Y as a potential blocker. Let's keep that in mind.`; break;
+                case 'quality_critic': response += `I foresee potential issues with scalability and user adoption if we don't prioritize robust error handling and intuitive design.`; break;
+                case 'strategic_planner': response += `Our strategy should focus on a phased rollout, starting with a minimal viable product to gather early feedback.`; break;
+                case 'task_executor': response += `To implement this, we'd need to allocate resources for front-end development, backend API integration, and database setup.`; break;
+                case 'result_validator': response += `How will we measure success? We need clear KPIs, such as user engagement metrics and system uptime, to validate our results.`; break;
+                case 'performance_optimizer': response += `To ensure optimal performance, we should consider serverless architecture and efficient data caching mechanisms.`; break;
+                case 'synthesis_engine': response += `Combining all insights, I am now preparing the final synthesized output based on our collective analysis. Stand by for the result.`; break;
+                default: response += `I'm processing the input: "${lastAgentResponse}".`;
+            }
+            return response;
+        }
+
+        function generateFinalSynthesizedOutput(userPrompt) {
+            const prompt = userPrompt.toLowerCase();
+            if (prompt.includes('techno') || prompt.includes('music') || prompt.includes('track')) {
+                return `**Project: Underground Techno Track - "Quantum Pulse"**
+
+**BPM:** 132
+**Key:** F Minor
+
+**Structure:**
+- **[0:00-0:32] Intro:** Filtered 909 kick drum enters, subtle atmospheric pads fade in.
+- **[0:32-1:04] Buildup 1:** Driving sub-bassline introduced. Off-beat open hi-hats add rhythm.
+- **[1:04-2:18] Groove:** Main synth stab sequence (arpeggiated) enters. Percussion layers build.
+- **[2:18-3:00] Breakdown:** Kick and bass drop out, leaving ethereal pads and a delayed synth echo.
+- **[3:00-4:30] Drop:** Full energy returns. A new acid-style 303 synth line is added.
+- **[4:30-5:15] Outro:** Elements begin to filter out, leaving the kick and a fading atmospheric pad.
+
+**Instrumentation:**
+- **Drums:** Roland TR-909 (heavy kick, crisp hats, snappy snare)
+- **Bass:** Moog-style sub-bass, single oscillator sine wave.
+- **Synths:** Arpeggiated stab (saw wave with delay), Roland TB-303 acid line, long-release pads.
+- **FX:** Reverb on pads, delay on synth stabs, white noise sweeps for transitions.`;
+            } else if (prompt.includes('story') || prompt.includes('write')) {
+                return `**Short Story: "The Last Signal"**
+
+The red dust of Mars settled on the viewport of Outpost Gamma. Elias was the last one here, the last human for fifty million miles. His mission: maintain the deep space comms relay until the supply ship arrived. It was three weeks late.
+
+He was sipping his recycled coffee when the console chirped. Not the daily diagnostic report, but an incoming signal. Unencrypted. Impossible.
+
+"…is anyone out there?" a voice crackled, laced with static. It was faint, human.
+
+Elias's heart hammered against his ribs. He scrambled for the transmitter. "This is Elias at Outpost Gamma. I read you. Who is this?"
+
+Silence. Then, "My name is… it doesn't matter. I'm on the 'Wanderer'. We were lost. We saw your light."
+
+The 'Wanderer' was a ghost ship, lost in the Kuiper Belt a century ago. Elias stared at the star-dusted blackness outside. He was alone. But for the first time in a long time, he didn't feel lonely. He felt afraid.`;
+            } else {
+                return `**Synthesized Output:**
+
+Based on the comprehensive analysis of the agent swarm, the following conclusions and actionable steps have been formulated in response to your query: "${userPrompt}".
+
+**1. Core Objective Identified:**
+The primary goal is to [synthesized interpretation of user's goal].
+
+**2. Key Considerations:**
+- **Feasibility:** The project is deemed viable with a [high/medium/low] probability of success.
+- **Resources:** Requires significant investment in [e.g., development time, data analysis, creative brainstorming].
+- **Potential Risks:** [e.g., Market competition, technical hurdles, user adoption challenges] must be mitigated.
+
+**3. Recommended Action Plan:**
+- **Phase 1 (Discovery):** Define clear success metrics and conduct further research.
+- **Phase 2 (Prototyping):** Develop a minimal viable product (MVP) to test core assumptions.
+- **Phase 3 (Deployment & Iteration):** Launch, gather user feedback, and refine the solution.
+
+This structured approach, combining strategic planning with creative innovation and technical rigor, provides a clear path forward.`;
+            }
+        }
+
+        async function processAgentsSequentially(userPrompt) {
+            isProcessing = true;
+            checkPointsAndToggleInput();
+
+            let currentResponses = [];
+            for (const agent of agents) {
+                updateAgentStatusUI(agent.id, 'typing');
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+
+                const agentResponseText = generateAgentResponse(agent, currentResponses, userPrompt);
+                const responseTokens = Math.floor(agentResponseText.length / 4);
+
+                const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const message = {
+                    sender: 'agent',
+                    agentName: agent.name,
+                    text: agentResponseText,
+                    timestamp: timestamp,
+                    tokens: responseTokens
+                };
+                conversation.push(message);
+                addMessageToChat(message.sender, message.agentName, message.text, message.timestamp, message.tokens);
+                currentResponses.push(message);
+                
+                updateAgentStatusUI(agent.id, 'idle');
+                saveData();
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const finalOutputText = generateFinalSynthesizedOutput(userPrompt);
+            const finalTokens = Math.floor(finalOutputText.length / 4);
+            const finalTimestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const finalMessage = {
+                sender: 'final-output',
+                agentName: 'Final Synthesized Output',
+                text: finalOutputText,
+                timestamp: finalTimestamp,
+                tokens: finalTokens
+            };
+            conversation.push(finalMessage);
+            addMessageToChat(finalMessage.sender, finalMessage.agentName, finalMessage.text, finalMessage.timestamp, finalMessage.tokens);
+            saveData();
+
+            isProcessing = false;
+            checkPointsAndToggleInput();
+            userInput.focus();
+        }
+
+        function handleSendMessage() {
+            if (isProcessing || userPoints < MESSAGE_COST) return;
+
+            const text = userInput.value.trim();
+            if (text === '') return;
+
+            userPoints -= MESSAGE_COST;
+            updatePointsDisplay();
+
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const userTokens = Math.floor(text.length / 4);
+
+            const userMessage = {
+                sender: 'user',
+                agentName: 'You',
+                text: text,
+                timestamp: timestamp,
+                tokens: userTokens
+            };
+            conversation.push(userMessage);
+            addMessageToChat(userMessage.sender, userMessage.agentName, userMessage.text, userMessage.timestamp, userMessage.tokens);
+            saveData();
+
+            userInput.value = '';
+            processAgentsSequentially(text);
+        }
+
+        function handleAddPoints() {
+            userPoints += POINTS_REFILL_AMOUNT;
+            updatePointsDisplay();
+            checkPointsAndToggleInput();
+            saveData();
+        }
+
+        function exportConversation() {
+            const conversationText = conversation.map(msg => {
+                return `${msg.timestamp} - ${msg.agentName}:\n${msg.text}`;
+            }).join('\n\n----------------------------------\n\n');
+
+            const blob = new Blob([conversationText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MistrInfiniti_Conversation_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function renderFileList() {
+            fileListDiv.innerHTML = '';
+            if (uploadedFiles.length === 0) {
+                fileListDiv.innerHTML = '<p style="text-align: center; opacity: 0.7;">No files uploaded.</p>';
+                return;
+            }
+            uploadedFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatBytes(file.size)}</span>
+                    </div>
+                    <button class="delete-file-btn" data-filename="${file.name}">🗑️</button>
+                `;
+                fileListDiv.appendChild(fileItem);
+            });
+
+            document.querySelectorAll('.delete-file-btn').forEach(button => {
+                button.addEventListener('click', handleFileDelete);
+            });
+        }
+
+        function handleFileDelete(event) {
+            const filename = event.currentTarget.dataset.filename;
+            uploadedFiles = uploadedFiles.filter(file => file.name !== filename);
+            saveData();
+            renderFileList();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const newFile = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    content: e.target.result
+                };
+                uploadedFiles.push(newFile);
+                saveData();
+                renderFileList();
+                
+                const systemMessage = {
+                    sender: 'system',
+                    agentName: 'System',
+                    text: `File "${file.name}" uploaded and is now available for context.`,
+                    timestamp: new Date().toISOString()
+                };
+                conversation.push(systemMessage);
+                addMessageToChat(systemMessage.sender, systemMessage.agentName, systemMessage.text, systemMessage.timestamp);
+                saveData();
+            };
+            reader.onerror = (e) => {
+                console.error("File reading error:", e);
+                alert("Error reading file.");
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input to allow re-uploading the same file
+        }
+
+        window.addEventListener('load', () => {
+            loadData();
+            checkPointsAndToggleInput();
+            sendMessageButton.addEventListener('click', handleSendMessage);
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+            exportConversationButton.addEventListener('click', exportConversation);
+            addPointsButton.addEventListener('click', handleAddPoints);
+
+            fileManagerButton.addEventListener('click', () => {
+                fileManagerModal.style.display = 'flex';
+                renderFileList();
+            });
+            closeModalButton.addEventListener('click', () => {
+                fileManagerModal.style.display = 'none';
+            });
+            fileManagerModal.addEventListener('click', (e) => {
+                if (e.target === fileManagerModal) {
+                    fileManagerModal.style.display = 'none';
+                }
+            });
+            fileUploadInput.addEventListener('change', handleFileUpload);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
