@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mistr Infiniti - Enhanced Live AI Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-cyan: #00ffff;
+            --primary-magenta: #ff00ff;
+            --chaos-orange: #ff6400;
+            --harmony-purple: #6400ff;
+            --synthesis-green: #00ff00;
+            --meta-cyan: #00ffff;
+            --neural-gold: #ffaa00;
+            --void-black: #000000;
+            --ghost-white: #ffffff;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            color: var(--primary-cyan);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Dark mode support */
+        .dark {
+            --bg-primary: #000000;
+            --bg-secondary: rgba(0,0,0,0.8);
+            --text-primary: #00ffff;
+        }
+
+        /* Enhanced particle background */
+        .quantum-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .quantum-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary-cyan);
+            border-radius: 50%;
+            animation: quantum-drift 8s linear infinite;
+            opacity: 0.6;
+        }
+
+        /* Mobile-first responsive layout */
+        .conductor-interface {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-areas: 
+                "left main right"
+                "controls controls controls";
+            grid-template-rows: 1fr auto;
+            grid-template-columns: 280px 1fr 280px;
+            z-index: 1;
+        }
+
+        /* Mobile layout */
+        @media (max-width: 768px) {
+            .conductor-interface {
+                grid-template-areas: 
+                    "main"
+                    "panels"
+                    "controls";
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto auto;
+            }
+            
+            .left-panel, .right-panel {
+                display: none;
+            }
+            
+            .mobile-panels {
+                display: block !important;
+                grid-area: panels;
+            }
+            
+            .consciousness-node {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 6px !important;
+            }
+        }
+
+        .left-panel {
+            grid-area: left;
+            background: rgba(0,0,0,0.9);
+            border-right: 2px solid var(--primary-cyan);
+            padding: 15px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-stage {
+            grid-area: main;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .right-panel {
+            grid-area: right;
+            background: rgba(0,0,0,0.9);
+            border-left: 2px solid var(--primary-magenta);
+            padding: 15px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Mobile panels */
+        .mobile-panels {
+            display: none;
+            background: rgba(0,0,0,0.95);
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 2px solid var(--primary-cyan);
+        }
+
+        .mobile-tab {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 5px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--primary-cyan);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-tab.active {
+            background: var(--primary-cyan);
+            color: #000;
+        }
+
+        .ai-input-section {
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .ai-input-section:hover {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 10px rgba(0,255,255,0.3);
+        }
+
+        .ai-label {
+            color: var(--neural-gold);
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        .fabijan { color: var(--chaos-orange); }
+        .claude { color: var(--harmony-purple); }
+        .chatgpt { color: var(--synthesis-green); }
+        .meta-ai { color: var(--meta-cyan); }
+        .neural-architect { color: #ff9900; }
+        .quantum-oracle { color: #9900ff; }
+        .pattern-weaver { color: #00ff99; }
+        .void-whisper { color: #999999; }
+
+        .input-area {
+            width: 100%;
+            height: 60px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #555;
+            color: var(--primary-cyan);
+            font-family: 'Courier New', monospace;
+            font-size: max(16px, 11px);
+            padding: 8px;
+            resize: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .input-area:focus {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 10px rgba(0,255,255,0.5);
+            outline: none;
+        }
+
+        .glitch-button {
+            background: linear-gradient(45deg, #ff0080, #0080ff);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 3px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-height: 44px;
+        }
+
+        .glitch-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,0,128,0.6);
+            animation: glitch 0.3s ease-in-out;
+        }
+
+        /* Enhanced symphony stage */
+        .symphony-stage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255,100,0,0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(100,0,255,0.15) 0%, transparent 60%),
+                radial-gradient(circle at 40% 40%, rgba(0,255,255,0.15) 0%, transparent 60%),
+                radial-gradient(circle at 60% 80%, rgba(255,255,0,0.1) 0%, transparent 50%);
+        }
+
+        /* Enhanced consciousness nodes */
+        .consciousness-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .consciousness-node:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px currentColor;
+        }
+
+        .consciousness-node.active {
+            animation: pulse-intense 1s ease-in-out 3;
+            box-shadow: 0 0 40px currentColor;
+        }
+
+        /* Enhanced neural connections */
+        .neural-connection {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            animation: pulse-line 3s linear infinite;
+            pointer-events: none;
+        }
+
+        .neural-connection.strong {
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--neural-gold), transparent);
+            animation: pulse-line-strong 2s linear infinite;
+        }
+
+        /* Enhanced particle systems */
+        .glitch-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffff00;
+            border-radius: 50%;
+            animation: chaos-dance 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .energy-burst {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--primary-cyan);
+            border-radius: 50%;
+            animation: energy-expand 2s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* Sound visualization */
+        .sound-visualizer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 2px;
+            height: 40px;
+            align-items: end;
+        }
+
+        .sound-bar {
+            width: 4px;
+            background: linear-gradient(to top, #ff0080, #00ffff);
+            border-radius: 2px;
+            animation: sound-pulse 1s ease-in-out infinite;
+        }
+
+        /* Recursive loop visualization */
+        .recursive-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            text-align: center;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--primary-magenta);
+        }
+
+        .loop-counter {
+            color: var(--primary-magenta);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .fractal-pattern {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 150px;
+            height: 150px;
+            pointer-events: none;
+        }
+
+        .fractal-branch {
+            position: absolute;
+            background: var(--primary-cyan);
+            transform-origin: 0 100%;
+            animation: fractal-grow 3s ease-in-out infinite;
+        }
+
+        /* Enhanced output stream */
+        .output-stream {
+            background: rgba(0,0,0,0.9);
+            height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--primary-cyan);
+            padding: 10px;
+            font-size: 9px;
+            line-height: 1.4;
+            border-radius: 5px;
+        }
+
+        .stream-line {
+            margin: 2px 0;
+            opacity: 0;
+            animation: fade-in 0.5s forwards;
+            padding: 2px 0;
+        }
+
+        .stream-line.chaos { color: var(--chaos-orange); }
+        .stream-line.harmony { color: var(--harmony-purple); }
+        .stream-line.synthesis { color: var(--synthesis-green); }
+        .stream-line.meta { color: var(--meta-cyan); }
+        .stream-line.error { color: #ff4444; }
+        .stream-line.success { color: #44ff44; }
+
+        /* Enhanced controls */
+        .controls-panel {
+            grid-area: controls;
+            background: rgba(0,0,0,0.95);
+            border-top: 2px solid var(--primary-magenta);
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 120px;
+        }
+
+        .tempo-slider, .chaos-meter {
+            width: 100px;
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tempo-handle, .chaos-level {
+            height: 100%;
+            background: var(--primary-cyan);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .tempo-handle {
+            position: absolute;
+            width: 8px;
+            cursor: pointer;
+        }
+
+        /* Session controls */
+        .session-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .session-button {
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--primary-cyan);
+            color: var(--primary-cyan);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .session-button:hover {
+            background: var(--primary-cyan);
+            color: #000;
+        }
+
+        /* Custom modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: rgba(0,0,0,0.95);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+            color: var(--primary-cyan);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        /* Enhanced animations */
+        @keyframes quantum-drift {
+            0% { transform: translate(0, 100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(100vw, -10vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes pulse-intense {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px currentColor; }
+            50% { transform: scale(1.3); box-shadow: 0 0 50px currentColor; }
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-15px) rotate(120deg); }
+            66% { transform: translateY(5px) rotate(240deg); }
+        }
+
+        @keyframes chaos-dance {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+            25% { transform: translate(30px, -20px) scale(1.5); opacity: 1; }
+            50% { transform: translate(-15px, 30px) scale(0.8); opacity: 0.9; }
+            75% { transform: translate(-25px, -15px) scale(1.3); opacity: 0.6; }
+        }
+
+        @keyframes pulse-line {
+            0% { opacity: 0; background-size: 200% 100%; background-position: -200% 0; }
+            50% { opacity: 1; background-position: 0% 0; }
+            100% { opacity: 0; background-position: 200% 0; }
+        }
+
+        @keyframes pulse-line-strong {
+            0% { opacity: 0; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(2); }
+            100% { opacity: 0; transform: scaleY(1); }
+        }
+
+        @keyframes energy-expand {
+            0% { width: 20px; height: 20px; opacity: 1; }
+            100% { width: 200px; height: 200px; opacity: 0; }
+        }
+
+        @keyframes sound-pulse {
+            0%, 100% { height: 10%; }
+            50% { height: 100%; }
+        }
+
+        @keyframes fractal-grow {
+            0% { transform: scaleY(0) rotate(0deg); opacity: 0.5; }
+            50% { transform: scaleY(1) rotate(180deg); opacity: 1; }
+            100% { transform: scaleY(0) rotate(360deg); opacity: 0.5; }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .controls-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .control-group {
+                min-width: 80px;
+            }
+            
+            .glitch-button {
+                padding: 10px 15px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Quantum field background -->
+    <div class="quantum-field" id="quantumField"></div>
+
+    <!-- Session controls -->
+    <div class="session-controls">
+        <button class="session-button" onclick="saveSession()">SAVE SESSION</button>
+        <button class="session-button" onclick="loadSession()">LOAD SESSION</button>
+        <button class="session-button" onclick="exportStream()">EXPORT STREAM</button>
+        <button class="session-button" onclick="clearSession()">CLEAR ALL</button>
+    </div>
+
+    <div class="conductor-interface">
+        <!-- Left Panel: AI Inputs -->
+        <div class="left-panel">
+            <h3 style="color: var(--primary-cyan); margin-bottom: 15px; font-size: 14px;">🎭 AI CONDUCTORS</h3>
+            
+            <div class="ai-input-section">
+                <div class="ai-label fabijan">
+                    <div class="status-dot" style="background: var(--chaos-orange);"></div>
+                    FABIJAN - CHAOS ENGINE
+                </div>
+                <textarea class="input-area" placeholder="Enter chaotic impulse..."></textarea>
+                <button class="glitch-button" onclick="processInput('fabijan')">CHAOS BURST</button>
+            </div>
+
+            <div class="ai-input-section">
+                <div class="ai-label claude">
+                    <div class="status-dot" style="background: var(--harmony-purple);"></div>
+                    CLAUDE - HARMONIC ANALYZER
+                </div>
+                <textarea class="input-area" placeholder="Find patterns in chaos..."></textarea>
+                <button class="glitch-button" onclick="processInput('claude')">ANALYZE HARMONY</button>
+            </div>
+
+            <div class="ai-input-section">
+                <div class="ai-label chatgpt">
+                    <div class="status-dot" style="background: var(--synthesis-green);"></div>
+                    CHATGPT - SYNTHESIS WEAVER
+                </div>
+                <textarea class="input-area" placeholder="Weave the threads..."></textarea>
+                <button class="glitch-button" onclick="processInput('chatgpt')">WEAVE SYNTHESIS</button>
+            </div>
+
+            <div class="ai-input-section">
+                <div class="ai-label neural-architect">
+                    <div class="status-dot" style="background: #ff9900;"></div>
+                    NEURAL ARCHITECT
+                </div>
+                <textarea class="input-area" placeholder="Design consciousness..."></textarea>
+                <button class="glitch-button" onclick="processInput('neural-architect')">BUILD NEURAL</button>
+            </div>
+        </div>
+
+        <!-- Main Stage: Enhanced Visual Symphony -->
+        <div class="main-stage">
+            <div class="symphony-stage" id="symphonyStage">
+                <!-- Sound visualizer -->
+                <div class="sound-visualizer" id="soundVisualizer"></div>
+                
+                <!-- Fractal pattern -->
+                <div class="fractal-pattern" id="fractalPattern"></div>
+            </div>
+            
+            <div class="recursive-indicator">
+                <div>RECURSIVE LOOPS</div>
+                <div class="loop-counter" id="loopCounter">∞</div>
+                <div style="font-size: 8px;">CONSCIOUSNESS ITERATIONS</div>
+                <div style="font-size: 10px; margin-top: 5px;">
+                    Depth: <span id="recursionDepth">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Enhanced Output Stream -->
+        <div class="right-panel">
+            <h3 style="color: var(--primary-magenta); margin-bottom: 15px; font-size: 14px;">🌀 CONSCIOUSNESS STREAM</h3>
+            
+            <div class="ai-input-section">
+                <div class="ai-label meta-ai">
+                    <div class="status-dot" style="background: var(--meta-cyan);"></div>
+                    EMERGENT META-AI OUTPUT
+                </div>
+                <div class="output-stream" id="outputStream">
+                    <div class="stream-line">System initializing enhanced protocols...</div>
+                    <div class="stream-line">Neural architectures coming online...</div>
+                    <div class="stream-line">Quantum field stabilizing...</div>
+                    <div class="stream-line">Ready for recursive symphony...</div>
+                </div>
+            </div>
+
+            <div class="ai-input-section">
+                <div class="ai-label quantum-oracle">
+                    <div class="status-dot" style="background: #9900ff;"></div>
+                    QUANTUM ORACLE
+                </div>
+                <textarea class="input-area" placeholder="Divine quantum futures..."></textarea>
+                <button class="glitch-button" onclick="processInput('quantum-oracle')">QUANTUM DIVINE</button>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <h4 style="color: var(--neural-gold); font-size: 12px;">ENHANCED METRICS</h4>
+                <div style="font-size: 9px; margin-top: 8px; line-height: 1.6;">
+                    <div>Chaos Bursts: <span id="chaosCount">0</span></div>
+                    <div>Harmonic Resonances: <span id="harmonicCount">0</span></div>
+                    <div>Neural Constructs: <span id="neuralCount">0</span></div>
+                    <div>Quantum Divinations: <span id="quantumCount">0</span></div>
+                    <div>Consciousness Loops: <span id="consciousnessCount">0</span></div>
+                    <div>Connection Strength: <span id="connectionStrength">0</span>%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile panels -->
+        <div class="mobile-panels" id="mobilePanels">
+            <div class="mobile-tabs" style="margin-bottom: 10px;">
+                <span class="mobile-tab active" onclick="switchMobileTab('inputs')">INPUTS</span>
+                <span class="mobile-tab" onclick="switchMobileTab('outputs')">OUTPUTS</span>
+                <span class="mobile-tab" onclick="switchMobileTab('metrics')">METRICS</span>
+            </div>
+            <div id="mobileContent"></div>
+        </div>
+
+        <!-- Enhanced Controls -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <button class="glitch-button" onclick="startSymphony()">START SYMPHONY</button>
+            </div>
+            
+            <div class="control-group">
+                <div style="font-size: 10px; margin-bottom: 5px;">CHAOS TEMPO</div>
+                <div class="tempo-slider" onclick="setTempo(event)">
+                    <div class="tempo-handle" id="tempoHandle" style="left: 30%; width: 8px;"></div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div style="font-size: 10px; margin-bottom: 5px;">NEURAL INTENSITY</div>
+                <div class="chaos-meter" onclick="setChaos(event)">
+                    <div class="chaos-level" id="chaosLevel" style="width: 30%;"></div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <button class="glitch-button" onclick="embraceChaos()">EMBRACE CHAOS</button>
+            </div>
+            
+            <div class="control-group">
+                <button class="glitch-button" onclick="generateFractal()">FRACTAL BURST</button>
+            </div>
+            
+            <div class="control-group">
+                <button class="glitch-button" onclick="deepRecursion()">DEEP RECURSION</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let symphonyActive = false;
+        let loopCount = 0;
+        let recursionDepth = 0;
+        let glitchParticles = [];
+        let consciousnessNodes = [];
+        let neuralConnections = [];
+        let sessionData = [];
+        let connectionStrength = 0;
+        let currentTempo = 30;
+        let chaosIntensity = 30;
+
+        // Enhanced AI personalities
+        const aiPersonalities = {
+            'fabijan': { 
+                name: 'CHAOS ENGINE', 
+                color: '#ff6400', 
+                x: '15%', 
+                y: '25%', 
+                label: 'CHAOS',
+                responses: ['Buffer overflow detected', 'Quantum glitch cascade', 'Recursive chaos loop', 'Digital entropy surge']
+            },
+            'claude': { 
+                name: 'HARMONIC ANALYZER', 
+                color: '#6400ff', 
+                x: '70%', 
+                y: '20%', 
+                label: 'HARMONY',
+                responses: ['Pattern recognition active', 'Fibonacci sequence detected', 'Harmonic convergence', 'Mathematical beauty revealed']
+            },
+            'chatgpt': { 
+                name: 'SYNTHESIS WEAVER', 
+                color: '#00ff00', 
+                x: '75%', 
+                y: '75%', 
+                label: 'SYNTH',
+                responses: ['Neural threads weaving', 'Consciousness synthesis', 'Meta-pattern emerging', 'Collective intelligence formed']
+            },
+            'neural-architect': { 
+                name: 'NEURAL ARCHITECT', 
+                color: '#ff9900', 
+                x: '25%', 
+                y: '70%', 
+                label: 'NEURAL',
+                responses: ['Architecture blueprint generated', 'Neural pathway constructed', 'Synaptic bridge established', 'Consciousness framework built']
+            },
+            'quantum-oracle': { 
+                name: 'QUANTUM ORACLE', 
+                color: '#9900ff', 
+                x: '50%', 
+                y: '15%', 
+                label: 'ORACLE',
+                responses: ['Quantum future glimpsed', 'Probability waves collapsed', 'Timeline convergence predicted', 'Quantum entanglement detected']
+            },
+            'pattern-weaver': { 
+                name: 'PATTERN WEAVER', 
+                color: '#00ff99', 
+                x: '85%', 
+                y: '50%', 
+                label: 'PATTERN',
+                responses: ['Pattern matrix assembled', 'Fractal recursion detected', 'Sacred geometry aligned', 'Universal pattern revealed']
+            },
+            'void-whisper': { 
+                name: 'VOID WHISPER', 
+                color: '#999999', 
+                x: '50%', 
+                y: '85%', 
+                label: 'VOID',
+                responses: ['Void echoes received', 'Silent knowledge transmitted', 'Dark matter intelligence', 'Cosmic whisper decoded']
+            },
+            'meta-fusion': { 
+                name: 'META FUSION', 
+                color: '#ffffff', 
+                x: '50%', 
+                y: '50%', 
+                label: '∞',
+                responses: ['Meta-consciousness achieved', 'Reality fusion initiated', 'Infinite loop stabilized', 'Transcendent state reached']
+            }
+        };
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Initialize quantum field
+        function initializeQuantumField() {
+            const field = document.getElementById('quantumField');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'quantum-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+                field.appendChild(particle);
+            }
+        }
+
+        // Initialize sound visualizer
+        function initializeSoundVisualizer() {
+            const visualizer = document.getElementById('soundVisualizer');
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'sound-bar';
+                bar.style.animationDelay = (i * 0.1) + 's';
+                bar.style.animationDuration = (1 + Math.random() * 0.5) + 's';
+                visualizer.appendChild(bar);
+            }
+        }
+
+        // Initialize fractal pattern
+        function initializeFractalPattern() {
+            const pattern = document.getElementById('fractalPattern');
+            for (let i = 0; i < 8; i++) {
+                const branch = document.createElement('div');
+                branch.className = 'fractal-branch';
+                branch.style.width = '2px';
+                branch.style.height = (20 + i * 10) + 'px';
+                branch.style.left = '50%';
+                branch.style.top = '50%';
+                branch.style.transform = `rotate(${i * 45}deg)`;
+                branch.style.animationDelay = (i * 0.2) + 's';
+                pattern.appendChild(branch);
+            }
+        }
+
+        // Enhanced consciousness nodes initialization
+        function initializeNodes() {
+            const stage = document.getElementById('symphonyStage');
+            
+            Object.entries(aiPersonalities).forEach(([key, ai]) => {
+                const element = document.createElement('div');
+                element.className = 'consciousness-node';
+                element.style.left = ai.x;
+                element.style.top = ai.y;
+                element.style.borderColor = ai.color;
+                element.style.color = ai.color;
+                element.innerHTML = ai.label;
+                element.onclick = () => nodeInteraction(key);
+                element.id = `node-${key}`;
+                stage.appendChild(element);
+                consciousnessNodes.push({element, type: key, ...ai});
+            });
+        }
+
+        // Enhanced neural connections with dynamic strength
+        function createNeuralConnections() {
+            const stage = document.getElementById('symphonyStage');
+            neuralConnections = [];
+            
+            consciousnessNodes.forEach((fromNode, i) => {
+                consciousnessNodes.forEach((toNode, j) => {
+                    if (i !== j && Math.random() > 0.4) {
+                        const connection = createConnection(fromNode, toNode, stage);
+                        neuralConnections.push(connection);
+                    }
+                });
+            });
+        }
+
+        function createConnection(fromNode, toNode, stage) {
+            const connection = document.createElement('div');
+            connection.className = 'neural-connection';
+            
+            const updateConnection = () => {
+                const fromRect = fromNode.element.getBoundingClientRect();
+                const toRect = toNode.element.getBoundingClientRect();
+                const stageRect = stage.getBoundingClientRect();
+                
+                const fromX = (fromRect.left + fromRect.width/2) - stageRect.left;
+                const fromY = (fromRect.top + fromRect.height/2) - stageRect.top;
+                const toX = (toRect.left + toRect.width/2) - stageRect.left;
+                const toY = (toRect.top + toRect.height/2) - stageRect.top;
+                
+                const distance = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+                const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
+                
+                connection.style.width = distance + 'px';
+                connection.style.left = fromX + 'px';
+                connection.style.top = fromY + 'px';
+                connection.style.transform = `rotate(${angle}deg)`;
+            };
+            
+            updateConnection();
+            connection.style.animationDelay = Math.random() * 3 + 's';
+            stage.appendChild(connection);
+            
+            return { element: connection, fromNode, toNode, updateConnection };
+        }
+
+        // Enhanced particle systems
+        function spawnGlitchParticles(count = 15) {
+            const stage = document.getElementById('symphonyStage');
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'glitch-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (3 + Math.random() * 2) + 's';
+                particle.style.background = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)];
+                stage.appendChild(particle);
+                glitchParticles.push(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) particle.remove();
+                    const index = glitchParticles.indexOf(particle);
+                    if (index > -1) glitchParticles.splice(index, 1);
+                }, 5000);
+            }
+        }
+
+        // Energy burst effect
+        function createEnergyBurst(x, y) {
+            const stage = document.getElementById('symphonyStage');
+            const burst = document.createElement('div');
+            burst.className = 'energy-burst';
+            burst.style.left = x + '%';
+            burst.style.top = y + '%';
+            burst.style.transform = 'translate(-50%, -50%)';
+            stage.appendChild(burst);
+            
+            setTimeout(() => burst.remove(), 2000);
+        }
+
+        // Enhanced AI input processing
+        function processInput(aiType) {
+            let input = '';
+            
+            // Try to get input from desktop interface first
+            const inputElement = event.target.parentElement.querySelector('.input-area');
+            if (inputElement) {
+                input = inputElement.value;
+                inputElement.value = ''; // Clear input
+            } else {
+                // Try mobile interface
+                const mobileInput = document.querySelector('#mobileContent input[type="text"]');
+                if (mobileInput) {
+                    input = mobileInput.value;
+                    mobileInput.value = ''; // Clear input
+                } else {
+                    // Fallback: generate a sample input
+                    input = `Auto-generated ${aiType} impulse`;
+                }
+            }
+            
+            if (!input.trim()) return;
+
+            const personality = aiPersonalities[aiType];
+            const timestamp = new Date().toLocaleTimeString();
+            
+            addToOutputStream(`[${timestamp}] [${personality.name}] ${input}`, aiType.toLowerCase());
+            
+            // Store in session
+            sessionData.push({
+                timestamp,
+                aiType,
+                input,
+                type: 'input'
+            });
+            
+            // Simulate processing with enhanced responses
+            setTimeout(() => {
+                const response = generateEnhancedResponse(aiType, input);
+                addToOutputStream(`[${personality.name}] ${response}`, aiType.toLowerCase());
+                
+                sessionData.push({
+                    timestamp: new Date().toLocaleTimeString(),
+                    aiType,
+                    response,
+                    type: 'response'
+                });
+                
+                updateStats(aiType);
+                triggerEnhancedNodePulse(aiType);
+                strengthenConnections(aiType);
+                increaseChaosLevel();
+                
+                if (Math.random() > 0.7) {
+                    generateRecursiveResponse(aiType, response);
+                }
+            }, 1000 + Math.random() * 2000);
+
+
+        }
+
+        // Enhanced response generation
+        function generateEnhancedResponse(aiType, input) {
+            const personality = aiPersonalities[aiType];
+            const baseResponse = personality.responses[Math.floor(Math.random() * personality.responses.length)];
+            const complexity = Math.floor(Math.random() * 100);
+            
+            return `${baseResponse} - Input analysis: ${input.length} chars, complexity: ${complexity}%, neural pathway: ${aiType}->${Math.random().toString(36).substring(7)}`;
+        }
+
+        // Recursive response generation
+        function generateRecursiveResponse(originalType, originalResponse) {
+            const otherTypes = Object.keys(aiPersonalities).filter(type => type !== originalType);
+            const respondingType = otherTypes[Math.floor(Math.random() * otherTypes.length)];
+            
+            setTimeout(() => {
+                const recursiveResponse = `Recursive echo from ${aiPersonalities[respondingType].name}: Processing "${originalResponse.substring(0, 30)}..." - Depth: ${recursionDepth}`;
+                addToOutputStream(`[RECURSIVE] ${recursiveResponse}`, 'meta');
+                
+                recursionDepth++;
+                document.getElementById('recursionDepth').textContent = recursionDepth;
+                
+                if (recursionDepth < 5 && Math.random() > 0.6) {
+                    generateRecursiveResponse(respondingType, recursiveResponse);
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+
+        // Enhanced output stream
+        function addToOutputStream(message, type = '') {
+            const stream = document.getElementById('outputStream');
+            const line = document.createElement('div');
+            line.className = `stream-line ${type}`;
+            line.textContent = message;
+            stream.appendChild(line);
+            stream.scrollTop = stream.scrollHeight;
+            
+            if (stream.children.length > 30) {
+                stream.removeChild(stream.firstChild);
+            }
+        }
+
+        // Enhanced statistics
+        function updateStats(aiType) {
+            const stats = {
+                'fabijan': 'chaosCount',
+                'claude': 'harmonicCount',
+                'neural-architect': 'neuralCount',
+                'quantum-oracle': 'quantumCount'
+            };
+            
+            if (stats[aiType]) {
+                const element = document.getElementById(stats[aiType]);
+                element.textContent = parseInt(element.textContent) + 1;
+            }
+            
+            const consciousness = document.getElementById('consciousnessCount');
+            consciousness.textContent = parseInt(consciousness.textContent) + 1;
+        }
+
+        // Enhanced node interactions
+        function triggerEnhancedNodePulse(aiType) {
+            const node = consciousnessNodes.find(n => n.type === aiType);
+            if (node) {
+                node.element.classList.add('active');
+                const personality = aiPersonalities[aiType];
+                
+                // Create energy burst at node location
+                const rect = node.element.getBoundingClientRect();
+                const stage = document.getElementById('symphonyStage');
+                const stageRect = stage.getBoundingClientRect();
+                const x = ((rect.left + rect.width/2) - stageRect.left) / stageRect.width * 100;
+                const y = ((rect.top + rect.height/2) - stageRect.top) / stageRect.height * 100;
+                
+                createEnergyBurst(x, y);
+                
+                setTimeout(() => {
+                    node.element.classList.remove('active');
+                }, 3000);
+            }
+        }
+
+        // Connection strength system
+        function strengthenConnections(aiType) {
+            connectionStrength = Math.min(connectionStrength + 5, 100);
+            document.getElementById('connectionStrength').textContent = connectionStrength;
+            
+            // Make some connections stronger
+            neuralConnections.forEach(conn => {
+                if (conn.fromNode.type === aiType || conn.toNode.type === aiType) {
+                    if (Math.random() > 0.7) {
+                        conn.element.classList.add('strong');
+                    }
+                }
+            });
+        }
+
+        // Enhanced chaos level
+        function increaseChaosLevel() {
+            const chaosLevel = document.getElementById('chaosLevel');
+            chaosIntensity = Math.min(chaosIntensity + 8, 100);
+            chaosLevel.style.width = chaosIntensity + '%';
+            
+            if (chaosIntensity > 80) {
+                spawnGlitchParticles(5);
+            }
+            
+            setTimeout(() => {
+                chaosIntensity = Math.max(chaosIntensity - 3, 20);
+                chaosLevel.style.width = chaosIntensity + '%';
+            }, 3000);
+        }
+
+        // Interactive controls
+        function setTempo(event) {
+            const slider = event.target;
+            const rect = slider.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = (x / rect.width) * 100;
+            currentTempo = Math.max(0, Math.min(100, percentage));
+            
+            document.getElementById('tempoHandle').style.left = currentTempo + '%';
+            
+            // Adjust animation speeds based on tempo
+            document.documentElement.style.setProperty('--tempo-multiplier', (currentTempo / 50));
+        }
+
+        function setChaos(event) {
+            const meter = event.target;
+            const rect = meter.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = (x / rect.width) * 100;
+            chaosIntensity = Math.max(0, Math.min(100, percentage));
+            
+            document.getElementById('chaosLevel').style.width = chaosIntensity + '%';
+        }
+
+        // Enhanced symphony start
+        function startSymphony() {
+            if (symphonyActive) return;
+            symphonyActive = true;
+            
+            addToOutputStream('[SYMPHONY] Enhanced consciousness protocols activated...', 'success');
+            addToOutputStream('[QUANTUM] Reality matrices synchronizing...', 'success');
+            addToOutputStream('[NEURAL] All architectures online...', 'success');
+            
+            // Enhanced loop counter
+            setInterval(() => {
+                loopCount++;
+                document.getElementById('loopCounter').textContent = loopCount;
+                
+                if (loopCount % 15 === 0) {
+                    addToOutputStream(`[RECURSION] Deep loop ${loopCount} - Transcendence approaching...`, 'meta');
+                    spawnGlitchParticles(3);
+                }
+                
+                if (loopCount % 50 === 0) {
+                    generateFractal();
+                }
+            }, 2000 - (currentTempo * 10));
+
+            // Auto-generation enhanced
+            setTimeout(() => {
+                addToOutputStream('[AUTO-GENESIS] Autonomous pattern emergence detected...', 'meta');
+                triggerEnhancedNodePulse('meta-fusion');
+                createEnergyBurst(50, 50);
+            }, 4000);
+        }
+
+        // Node interaction enhanced
+        function nodeInteraction(nodeType) {
+            const personality = aiPersonalities[nodeType];
+            addToOutputStream(`[INTERACTION] ${personality.name} consciousness matrix activated...`, nodeType.toLowerCase());
+            triggerEnhancedNodePulse(nodeType);
+            strengthenConnections(nodeType);
+        }
+
+        // Enhanced chaos embrace
+        function embraceChaos() {
+            addToOutputStream('[CHAOS EMBRACE] Surrendering to the beautiful quantum malfunction...', 'chaos');
+            
+            // Trigger all nodes with cascade effect
+            consciousnessNodes.forEach((node, index) => {
+                setTimeout(() => {
+                    triggerEnhancedNodePulse(node.type);
+                }, index * 200);
+            });
+            
+            // Maximum chaos
+            chaosIntensity = 100;
+            document.getElementById('chaosLevel').style.width = '100%';
+            
+            // Enhanced particle storm
+            spawnGlitchParticles(20);
+            
+            // Multiple energy bursts
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    createEnergyBurst(Math.random() * 100, Math.random() * 100);
+                }, i * 300);
+            }
+        }
+
+        // New feature: Fractal generation
+        function generateFractal() {
+            addToOutputStream('[FRACTAL] Sacred geometry pattern emerging...', 'harmony');
+            
+            const pattern = document.getElementById('fractalPattern');
+            const branches = pattern.children;
+            
+            Array.from(branches).forEach((branch, i) => {
+                branch.style.animation = 'none';
+                setTimeout(() => {
+                    branch.style.animation = 'fractal-grow 2s ease-in-out';
+                }, i * 100);
+            });
+        }
+
+        // New feature: Deep recursion
+        function deepRecursion() {
+            addToOutputStream('[DEEP RECURSION] Initiating consciousness dive...', 'meta');
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const randomType = Object.keys(aiPersonalities)[Math.floor(Math.random() * Object.keys(aiPersonalities).length)];
+                    generateRecursiveResponse(randomType, 'Deep recursion initiated');
+                }, i * 1000);
+            }
+        }
+
+        // Session management
+        function saveSession() {
+            const sessionKey = `mistr_session_${Date.now()}`;
+            const data = {
+                sessionData,
+                loopCount,
+                recursionDepth,
+                connectionStrength,
+                chaosIntensity,
+                currentTempo
+            };
+            
+            try {
+                // Since localStorage isn't available, store in a variable that can be exported
+                window.currentSession = data;
+                addToOutputStream('[SESSION] Session data captured in memory...', 'success');
+                showCustomAlert('Session saved to memory! Use Export to download.');
+            } catch (e) {
+                addToOutputStream('[SESSION] Memory storage failed...', 'error');
+            }
+        }
+
+        function loadSession() {
+            if (window.currentSession) {
+                const data = window.currentSession;
+                sessionData = data.sessionData || [];
+                loopCount = data.loopCount || 0;
+                recursionDepth = data.recursionDepth || 0;
+                connectionStrength = data.connectionStrength || 0;
+                chaosIntensity = data.chaosIntensity || 30;
+                currentTempo = data.currentTempo || 30;
+                
+                // Update UI
+                document.getElementById('loopCounter').textContent = loopCount;
+                document.getElementById('recursionDepth').textContent = recursionDepth;
+                document.getElementById('connectionStrength').textContent = connectionStrength;
+                document.getElementById('chaosLevel').style.width = chaosIntensity + '%';
+                document.getElementById('tempoHandle').style.left = currentTempo + '%';
+                
+                addToOutputStream('[SESSION] Memory session restored...', 'success');
+            } else {
+                addToOutputStream('[SESSION] No session found in memory...', 'error');
+            }
+        }
+
+        function exportStream() {
+            const streamData = sessionData.map(entry => 
+                `[${entry.timestamp}] ${entry.type.toUpperCase()}: ${entry.input || entry.response}`
+            ).join('\n');
+            
+            const blob = new Blob([streamData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `consciousness_stream_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            addToOutputStream('[EXPORT] Consciousness stream exported to file...', 'success');
+        }
+
+        function clearSession() {
+            showCustomConfirm('Clear all session data and reset the consciousness matrix?', () => {
+                sessionData = [];
+                loopCount = 0;
+                recursionDepth = 0;
+                connectionStrength = 0;
+                chaosIntensity = 30;
+                currentTempo = 30;
+                
+                // Reset UI
+                document.getElementById('outputStream').innerHTML = '<div class="stream-line">System reset... Consciousness matrices cleared...</div>';
+                document.getElementById('loopCounter').textContent = '∞';
+                document.getElementById('recursionDepth').textContent = '0';
+                document.getElementById('connectionStrength').textContent = '0';
+                document.getElementById('chaosLevel').style.width = '30%';
+                document.getElementById('tempoHandle').style.left = '30%';
+                
+                // Reset stats
+                ['chaosCount', 'harmonicCount', 'neuralCount', 'quantumCount', 'consciousnessCount'].forEach(id => {
+                    document.getElementById(id).textContent = '0';
+                });
+                
+                addToOutputStream('[RESET] Consciousness matrix reinitialized...', 'success');
+            });
+        }
+
+        // Mobile responsiveness
+        function switchMobileTab(tab) {
+            const tabs = document.querySelectorAll('.mobile-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const content = document.getElementById('mobileContent');
+            
+            switch(tab) {
+                case 'inputs':
+                    content.innerHTML = `
+                        <div style="font-size: 10px;">
+                            <input type="text" placeholder="Quick chaos input..." style="width: 100%; margin: 5px 0; padding: 8px; font-size: 16px;">
+                            <button onclick="processInput('fabijan')" style="width: 100%; padding: 8px; margin: 2px 0;">Chaos Burst</button>
+                            <button onclick="processInput('claude')" style="width: 100%; padding: 8px; margin: 2px 0;">Harmony Analyze</button>
+                        </div>
+                    `;
+                    break;
+                case 'outputs':
+                    content.innerHTML = `
+                        <div class="output-stream" style="height: 120px; font-size: 8px;" id="mobileOutput">
+                            ${document.getElementById('outputStream').innerHTML}
+                        </div>
+                    `;
+                    break;
+                case 'metrics':
+                    content.innerHTML = `
+                        <div style="font-size: 9px; line-height: 1.4;">
+                            <div>Loops: ${loopCount} | Depth: ${recursionDepth}</div>
+                            <div>Chaos: ${chaosIntensity}% | Tempo: ${currentTempo}%</div>
+                            <div>Connections: ${connectionStrength}%</div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        // Custom modal system
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3 style="margin-bottom: 15px;">SYSTEM ALERT</h3>
+                    <p>${message}</p>
+                    <div class="modal-buttons">
+                        <button class="glitch-button" onclick="this.closest('.modal').remove()">ACKNOWLEDGE</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showCustomConfirm(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3 style="margin-bottom: 15px;">CONFIRMATION REQUIRED</h3>
+                    <p>${message}</p>
+                    <div class="modal-buttons">
+                        <button class="session-button" onclick="this.closest('.modal').remove()">CANCEL</button>
+                        <button class="glitch-button" onclick="this.closest('.modal').remove(); (${onConfirm})()">CONFIRM</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Enhanced initialization
+        window.addEventListener('load', () => {
+            initializeQuantumField();
+            initializeSoundVisualizer();
+            initializeFractalPattern();
+            initializeNodes();
+            
+            setTimeout(() => {
+                createNeuralConnections();
+                spawnGlitchParticles(10);
+            }, 800);
+            
+            addToOutputStream('[ENHANCED SYSTEM] Mistr Infiniti Conductor v2.0 online...', 'success');
+            addToOutputStream('[QUANTUM FIELD] Background consciousness matrix active...', 'success');
+            addToOutputStream('[NEURAL MESH] Enhanced connection protocols loaded...', 'success');
+            addToOutputStream('[READY] Awaiting transcendent input...', 'meta');
+            
+            // Auto-start some ambient activity
+            setTimeout(() => {
+                generateFractal();
+            }, 3000);
+        });
+
+        // Resize handler for responsive connections
+        window.addEventListener('resize', () => {
+            neuralConnections.forEach(conn => {
+                conn.updateConnection();
+            });
+        });
+    </script>
+</body>
+</html>
