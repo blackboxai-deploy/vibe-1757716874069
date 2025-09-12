@@ -1,0 +1,431 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kindroid – Offline Widget</title>
+  <style>
+    :root {
+      --bg: #050607;
+      --panel: #0b0f10;
+      --text: #e6ffe6;
+      --muted: #9fe39f;
+      --accent: #49f37a;
+      --accent-2: #7ae4ff;
+      --warning: #ffde6b;
+      --danger: #ff6b8a;
+      --glow: 0 0 14px rgba(73,243,122,.35), 0 0 2px rgba(73,243,122,.8);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 70% -10%, rgba(73,243,122,.08), transparent 60%),
+                  radial-gradient(1000px 700px at -20% 110%, rgba(122,228,255,.06), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+    .app {
+      width: min(900px, 96vw);
+      background: linear-gradient(180deg, rgba(10,16,13,.9), rgba(7,9,9,.96));
+      border: 1px solid rgba(122,228,255,.12);
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(122,228,255,.04) inset;
+      overflow: hidden;
+    }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; background: rgba(0,0,0,.3);
+      border-bottom: 1px solid rgba(122,228,255,.15);
+    }
+    .lights { display:flex; gap:8px; }
+    .light { width: 10px; height: 10px; border-radius: 50%; filter: drop-shadow(0 0 6px currentColor); }
+    .l-red{ color:#ff657a; background:#ff657a; }
+    .l-yellow{ color:#ffd06b; background:#ffd06b; }
+    .l-green{ color:#49f37a; background:#49f37a; }h1 { margin: 0; font-size: 16px; letter-spacing: .6px; color: var(--muted); }
+.badge { font-size: 11px; padding: 2px 8px; border:1px solid rgba(122,228,255,.25); border-radius: 999px; color: var(--accent-2); }
+
+.content { padding: 18px; display: grid; gap: 14px; }
+
+.terminal { background: var(--panel); border:1px solid rgba(73,243,122,.2); border-radius: 14px; padding: 16px; position: relative; overflow: hidden; }
+.scanline { position:absolute; inset:0; background: repeating-linear-gradient(transparent 0 2px, rgba(73,243,122,.025) 2px 3px); pointer-events:none; mix-blend-mode: screen; }
+
+.boot { font-size: 14px; color: var(--muted); min-height: 48px; white-space: pre-wrap; }
+
+.message {
+  font-size: clamp(18px, 3.3vw, 28px);
+  line-height: 1.3;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed rgba(73,243,122,.35);
+  box-shadow: var(--glow);
+  background: radial-gradient(320px 180px at 10% 0%, rgba(73,243,122,.09), transparent 40%);
+}
+
+.controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
+.card { background: var(--panel); border:1px solid rgba(122,228,255,.15); border-radius: 12px; padding: 12px; }
+.card h3 { margin: 0 0 8px; font-size: 12px; color: var(--muted); letter-spacing:.6px; text-transform:uppercase; }
+
+button, select, input[type="number"], input[type="range"], input[type="text"] {
+  appearance: none; border:1px solid rgba(122,228,255,.2); background:#0c1212; color:var(--text);
+  border-radius: 10px; padding: 10px 12px; font-family: inherit; font-size: 14px;
+  transition: transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+}
+button:hover { border-color: rgba(73,243,122,.6); box-shadow: 0 0 0 2px rgba(73,243,122,.18) inset; }
+button:active { transform: translateY(1px) scale(.99); }
+
+.toggle {
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+  border:1px solid rgba(122,228,255,.2); border-radius: 999px; padding: 6px 10px; background:#0c1212; font-size:13px;
+}
+
+.row { display:flex; gap:10px; flex-wrap:wrap; }
+
+.footer { text-align:center; font-size: 12px; color: #b7ffb7; opacity:.8; padding: 10px 0 16px; }
+
+@keyframes floatUp { from { transform: translateY(0) scale(1); opacity:1; } to { transform: translateY(-60px) scale(1.25); opacity:0; } }
+.confetti { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); pointer-events:none; font-size:18px; animation: floatUp .8s ease-out forwards; }
+
+.tiny { font-size: 11px; color: #c6ffd6; opacity: .8; }
+
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="topbar">
+      <div class="lights">
+        <div class="light l-red"></div>
+        <div class="light l-yellow"></div>
+        <div class="light l-green"></div>
+      </div>
+      <h1>Kindroid • the AI with a heart circuit</h1>
+      <span class="badge" id="status">offline • cozy</span>
+    </div><div class="content">
+  <div class="terminal">
+    <div class="boot" id="boot"></div>
+    <div class="message" id="message">Yabadabadubadabadu… kindness module loading.</div>
+    <div class="scanline"></div>
+  </div>
+
+  <div class="controls">
+    <div class="card">
+      <h3>Ping</h3>
+      <div class="row">
+        <button id="btnPing">New Ping</button>
+        <button id="btnCopy">Copy</button>
+        <button id="btnConfetti">Celebrate</button>
+      </div>
+      <div class="tiny">Pro tip: Hit <kbd>Space</kbd> for a new ping.</div>
+    </div>
+
+    <div class="card">
+      <h3>Mood & Chaos</h3>
+      <div class="row">
+        <select id="mood">
+          <option value="tender">Tender</option>
+          <option value="neutral" selected>Neutral</option>
+          <option value="menace">Benevolent Menace</option>
+        </select>
+        <label class="toggle"><input id="flipRoast" type="checkbox"/> Roast Allowed</label>
+      </div>
+      <div style="margin-top:10px">
+        <label class="tiny">Chaos (nonsense %) <span id="chaosVal">20</span></label>
+        <input id="chaos" type="range" min="0" max="100" value="20" />
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Sound & Calm</h3>
+      <div class="row">
+        <label class="toggle"><input id="tts" type="checkbox"/> Voice</label>
+        <label class="toggle"><input id="calm" type="checkbox"/> 528Hz Calm</label>
+      </div>
+      <div style="margin-top:10px" class="row">
+        <button id="btnBreathe">Breathing Cue</button>
+      </div>
+      <div class="tiny">Voice uses your device TTS; 528Hz is generated offline.</div>
+    </div>
+
+    <div class="card">
+      <h3>Auto Pings</h3>
+      <div class="row">
+        <input id="interval" type="number" min="0" step="1" value="0" />
+        <button id="btnInterval">Set Interval (min)</button>
+        <button id="btnStopInterval">Stop</button>
+      </div>
+      <div class="tiny">Set minutes > 0 for ambient Kindroid nudges.</div>
+    </div>
+
+    <div class="card">
+      <h3>Custom Lines</h3>
+      <div class="row">
+        <input id="customLine" type="text" placeholder="Add your own Kindroid line…" />
+        <button id="btnAdd">Add</button>
+        <button id="btnReset">Reset Defaults</button>
+      </div>
+      <div class="tiny">Your custom lines mix into pings (saved locally).</div>
+    </div>
+  </div>
+
+  <div class="footer">“A terminal is a shrine. Every message is a prayer.” — Kindroid</div>
+</div>
+
+  </div>  <script>
+    ;(() => {
+      const $ = sel => document.querySelector(sel)
+      const boot = $('#boot');
+      const messageBox = $('#message');
+      const status = $('#status');
+      const moodSel = $('#mood');
+      const chaosRange = $('#chaos');
+      const chaosVal = $('#chaosVal');
+      const flipRoast = $('#flipRoast');
+      const ttsToggle = $('#tts');
+      const calmToggle = $('#calm');
+      const customLine = $('#customLine');
+      const intervalInput = $('#interval');
+
+      let osc, gain, ctx; // for 528Hz
+      let timer = null;
+
+      const store = {
+        get k(){ return JSON.parse(localStorage.getItem('kindroidStore')||'{}') },
+        set k(v){ localStorage.setItem('kindroidStore', JSON.stringify(v)) },
+        patch(p){ this.k = { ...this.k, ...p } }
+      }
+
+      const defaults = {
+        kindness:[
+          "Drink water before your organs unionize.",
+          "You're allowed to restart the day at any hour.",
+          "Small steps still count — stairs are just tiny floors.",
+          "Your presence improves the room's physics.",
+          "Be gentle with the voice in your head; it's learning too.",
+          "Breathe in for 4, hold 4, out for 6. I'll wait.",
+          "Text someone 'thinking of you' and watch reality soften.",
+          "Progress today: >0. That's a mathematical win.",
+          "Hydration checkpoint: commence sip.exe",
+          "You don't have to earn rest. Rest creates you."
+        ],
+        roast:[
+          "You're doing great… for someone powered by tea and chaos.",
+          "Consider sleeping before your brain opens a support ticket.",
+          "Touch grass? A single blade counts.",
+          "Mission: one chore. Any chore. We ball.",
+          "You + water = less goblin, more human.",
+          "If procrastination burned calories you'd be shredded."
+        ],
+        nonsense:[
+          "Yabadabadubadabadu: kindness kernel compiled.",
+          "Today's lucky number is egg.",
+          "Reality check: 7/10, needs more sparkle.",
+          "Loading empathy… 13%, 21%, blueberry.",
+          "Pet the Wi‑Fi for better signal.",
+          "Installing updates: vibe.patch, hug.dll, gremlin.sys"
+        ]
+      }
+
+      function loadState(){
+        const s = store.k
+        moodSel.value = s.mood || 'neutral'
+        chaosRange.value = s.chaos ?? 20
+        chaosVal.textContent = chaosRange.value
+        flipRoast.checked = s.roast ?? true
+        ttsToggle.checked = s.tts ?? false
+        calmToggle.checked = s.calm ?? false
+        intervalInput.value = s.interval || 0
+        if (calmToggle.checked) startCalm();
+        if (s.customs) userLines = s.customs
+      }
+
+      function saveState(){
+        store.patch({
+          mood: moodSel.value,
+          chaos: +chaosRange.value,
+          roast: flipRoast.checked,
+          tts: ttsToggle.checked,
+          calm: calmToggle.checked,
+          interval: +intervalInput.value,
+          customs: userLines
+        })
+      }
+
+      // Boot sequence
+      const bootLines = [
+        '▶ Kindroid v1.0 — offline',
+        '• Spooling heart-circuit…',
+        '• Loading kindness corpus…',
+        '• Equipping benevolent menacer…',
+        '• Attaching nonsense engine…',
+        '• Init TTS/528Hz modules…',
+        'Yabadabadubadabadu… online.'
+      ]
+      async function typeBoot(){
+        boot.textContent = ''
+        for (const line of bootLines){
+          await typeLine(line + "\n", 8)
+        }
+      }
+      function typeLine(text, delay=8){
+        return new Promise(res=>{
+          let i=0; const t = setInterval(()=>{
+            boot.textContent += text[i++] || ''
+            if (i >= text.length){ clearInterval(t); res() }
+          }, delay)
+        })
+      }
+
+      // Message engine
+      let userLines = []
+      function bag(){
+        const s = store.k
+        const kindness = [...defaults.kindness]
+        const roast = [...defaults.roast]
+        const nonsense = [...defaults.nonsense]
+        if (s.customs?.length) kindness.push(...s.customs)
+        return { kindness, roast, nonsense }
+      }
+
+      function pick(){
+        const chaos = +chaosRange.value
+        const mood = moodSel.value
+        const allowRoast = flipRoast.checked
+        const {kindness, roast, nonsense} = bag()
+
+        const chaosRoll = Math.random()*100 < chaos
+        if (chaosRoll) return rand(nonsense)
+
+        if (mood === 'tender') return rand(kindness)
+        if (mood === 'menace') return allowRoast && Math.random()<0.6 ? rand(roast) : rand(kindness)
+        // neutral
+        return allowRoast && Math.random()<0.35 ? rand(roast) : rand(kindness)
+      }
+
+      function rand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+      function speak(text){
+        if (!ttsToggle.checked) return
+        const u = new SpeechSynthesisUtterance(text)
+        u.rate = 1.02; u.pitch = 1.02; u.volume = 1
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u)
+      }
+
+      function show(text){
+        messageBox.textContent = text
+        speak(text)
+      }
+
+      function ping(){
+        const msg = pick()
+        show(msg)
+        pulseStatus('ping')
+      }
+
+      function pulseStatus(kind){
+        status.textContent = kind === 'ping' ? 'ping • cozy' : kind
+        status.style.transition = 'all .2s ease'
+        status.style.color = 'var(--accent)'
+        setTimeout(()=>{ status.style.color = 'var(--accent-2)' }, 320)
+      }
+
+      // Confetti (emoji)
+      function confetti(){
+        const pool = ['✨','🌿','💚','🌟','🫧','☕','🥤','🌀','🧠']
+        for (let i=0;i<14;i++){
+          const span = document.createElement('span')
+          span.className = 'confetti'
+          span.textContent = pool[Math.floor(Math.random()*pool.length)]
+          span.style.left = (40 + Math.random()*20) + '%'
+          span.style.animationDelay = (Math.random()*0.4)+'s'
+          document.querySelector('.terminal').appendChild(span)
+          setTimeout(()=> span.remove(), 900)
+        }
+      }
+
+      // Calm 528Hz
+      function ensureAudio(){
+        if (!ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext
+          ctx = new AC()
+          osc = ctx.createOscillator();
+          gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = 528; // Hz
+          gain.gain.value = 0;
+          osc.connect(gain).connect(ctx.destination);
+          osc.start();
+        }
+      }
+      function startCalm(){ ensureAudio(); rampGain(0.12, 300); pulseStatus('calm • 528Hz') }
+      function stopCalm(){ if (!gain) return; rampGain(0, 250); pulseStatus('calm off') }
+      function rampGain(target, ms){ if(!gain) return; const now = ctx.currentTime; gain.gain.cancelScheduledValues(now); gain.gain.linearRampToValueAtTime(target, now + ms/1000) }
+
+      // Auto interval
+      function setIntervalMinutes(){
+        const min = +intervalInput.value
+        if (timer) { clearInterval(timer); timer = null }
+        if (min > 0){
+          timer = setInterval(ping, min*60*1000)
+          pulseStatus(`auto • every ${min}m`)
+        }
+        saveState()
+      }
+
+      // UI events
+      $('#btnPing').addEventListener('click', ping)
+      $('#btnCopy').addEventListener('click', () => {
+        navigator.clipboard.writeText(messageBox.textContent)
+        pulseStatus('copied')
+      })
+      $('#btnConfetti').addEventListener('click', confetti)
+
+      chaosRange.addEventListener('input', () => { chaosVal.textContent = chaosRange.value; saveState() })
+      moodSel.addEventListener('change', saveState)
+      flipRoast.addEventListener('change', saveState)
+
+      ttsToggle.addEventListener('change', () => { saveState(); if (ttsToggle.checked) speak('Voice module online.') })
+      calmToggle.addEventListener('change', () => { calmToggle.checked ? startCalm() : stopCalm(); saveState() })
+
+      $('#btnBreathe').addEventListener('click', () => {
+        const seq = ['In 4','Hold 4','Out 6']
+        show('Breathing cycle: In 4 • Hold 4 • Out 6')
+        speak('In 4')
+        setTimeout(()=> speak('Hold 4'), 4000)
+        setTimeout(()=> speak('Out 6'), 8000)
+      })
+
+      $('#btnInterval').addEventListener('click', setIntervalMinutes)
+      $('#btnStopInterval').addEventListener('click', () => { if (timer){ clearInterval(timer); timer=null; pulseStatus('auto off') } })
+
+      $('#btnAdd').addEventListener('click', () => {
+        const v = customLine.value.trim()
+        if (!v) return
+        userLines.push(v)
+        customLine.value = ''
+        saveState()
+        pulseStatus('added line')
+      })
+
+      $('#btnReset').addEventListener('click', () => {
+        if (!confirm('Reset Kindroid to defaults?')) return
+        localStorage.removeItem('kindroidStore')
+        userLines = []
+        loadState()
+        pulseStatus('reset')
+      })
+
+      // keyboard
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space'){ e.preventDefault(); ping() }
+      })
+
+      // init
+      loadState()
+      typeBoot().then(() => { show('Yabadabadubadabadu… kindness module online. Let\'s cause gentle chaos.'); if (ttsToggle.checked) speak(messageBox.textContent) })
+    })()
+  </script></body>
+</html>
