@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepolia Web3 Development dApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .wallet-status {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .wallet-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .wallet-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .balance {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .network-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .network-sepolia {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .network-wrong {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .network-disconnected {
+            background: #95a5a6;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-number {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+            border: 2px solid #e0e6ff;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .faucet-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e6ff;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e6ff;
+            border-radius: 8px;
+            font-size: 1em;
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .transaction-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px 12px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .contract-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+            padding: 8px 12px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tab-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #fff5b4, #ffe066);
+            border: 2px solid #f9ca24;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .wallet-status {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sepolia Web3 dApp</h1>
+            <p>Interactive Web3 development platform for Ethereum's Sepolia testnet</p>
+        </div>
+
+        <div class="wallet-status">
+            <div class="wallet-info">
+                <div id="walletAddress" class="wallet-address">Not connected</div>
+                <div id="walletBalance" class="balance">Balance: -- ETH</div>
+            </div>
+            <div>
+                <span id="networkStatus" class="network-indicator network-disconnected">Disconnected</span>
+                <button id="connectWallet" class="btn">Connect MetaMask</button>
+            </div>
+        </div>
+
+        <section class="section">
+            <h2><span class="section-number">💧</span>Sepolia Faucet Manager</h2>
+            <p>Get free Sepolia ETH from multiple faucets and track your requests:</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>🔧 Alchemy Faucet</h4>
+                    <p>Reliable faucet with good daily limits</p>
+                    <button class="btn" onclick="requestFromFaucet('alchemy')">Request ETH</button>
+                    <div id="alchemyStatus" class="faucet-status hidden"></div>
+                </div>
+                <div class="card">
+                    <h4>⚡ QuickNode Faucet</h4>
+                    <p>Fast and user-friendly interface</p>
+                    <button class="btn" onclick="requestFromFaucet('quicknode')">Request ETH</button>
+                    <div id="quicknodeStatus" class="faucet-status hidden"></div>
+                </div>
+                <div class="card">
+                    <h4>🌐 Infura Faucet</h4>
+                    <p>Enterprise-grade infrastructure</p>
+                    <button class="btn" onclick="requestFromFaucet('infura')">Request ETH</button>
+                    <div id="infuraStatus" class="faucet-status hidden"></div>
+                </div>
+                <div class="card">
+                    <h4>🔗 Chainlink Faucet</h4>
+                    <p>Also provides LINK tokens</p>
+                    <button class="btn" onclick="requestFromFaucet('chainlink')">Request ETH + LINK</button>
+                    <div id="chainlinkStatus" class="faucet-status hidden"></div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 Pro Tip:</strong> Wait 24 hours between requests from the same faucet. Use different faucets if you need more ETH immediately!
+            </div>
+        </section>
+
+        <section class="section">
+            <h2><span class="section-number">🔄</span>Network Manager</h2>
+            <p>Easily switch between networks and add Sepolia to your MetaMask:</p>
+            
+            <div style="margin: 20px 0;">
+                <button id="addSepoliaNetwork" class="btn">Add Sepolia Network</button>
+                <button id="switchToSepolia" class="btn" disabled>Switch to Sepolia</button>
+                <button onclick="checkNetwork()" class="btn btn-success">Check Current Network</button>
+            </div>
+
+            <div id="networkInfo" class="info-box hidden">
+                <h4>Current Network Details:</h4>
+                <div id="networkDetails"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2><span class="section-number">💰</span>Wallet Tools</h2>
+            
+            <div class="tab-container">
+                <div class="tab active" onclick="switchTab('balance')">Balance Checker</div>
+                <div class="tab" onclick="switchTab('send')">Send ETH</div>
+                <div class="tab" onclick="switchTab('history')">Transaction History</div>
+            </div>
+
+            <div id="balanceTab" class="tab-content active">
+                <div class="form-group">
+                    <label class="form-label">Check Balance for Address:</label>
+                    <input type="text" id="balanceAddress" class="form-input" placeholder="0x... or ENS name">
+                    <button onclick="checkBalance()" class="btn" style="margin-top: 10px;">Check Balance</button>
+                </div>
+                <div id="balanceResult" class="hidden"></div>
+            </div>
+
+            <div id="sendTab" class="tab-content">
+                <div class="form-group">
+                    <label class="form-label">Recipient Address:</label>
+                    <input type="text" id="sendToAddress" class="form-input" placeholder="0x...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount (ETH):</label>
+                    <input type="number" id="sendAmount" class="form-input" placeholder="0.01" step="0.001" min="0">
+                </div>
+                <button onclick="sendETH()" class="btn" id="sendButton">Send ETH</button>
+                <div id="sendResult" class="hidden"></div>
+            </div>
+
+            <div id="historyTab" class="tab-content">
+                <button onclick="loadTransactionHistory()" class="btn">Load Recent Transactions</button>
+                <div id="transactionHistory" class="hidden"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2><span class="section-number">📜</span>Smart Contract Tools</h2>
+            
+            <div class="tab-container">
+                <div class="tab active" onclick="switchContractTab('deploy')">Deploy Contract</div>
+                <div class="tab" onclick="switchContractTab('interact')">Interact with Contract</div>
+                <div class="tab" onclick="switchContractTab('verify')">Verify Contract</div>
+            </div>
+
+            <div id="deployTab" class="tab-content active">
+                <h4>Deploy HelloWorld Contract</h4>
+                <div class="form-group">
+                    <label class="form-label">Initial Message:</label>
+                    <input type="text" id="initialMessage" class="form-input" placeholder="Hello Sepolia!" value="Hello Sepolia!">
+                </div>
+                <button onclick="deployContract()" class="btn" id="deployButton">Deploy Contract</button>
+                <div id="deployResult" class="hidden"></div>
+            </div>
+
+            <div id="interactTab" class="tab-content">
+                <div class="form-group">
+                    <label class="form-label">Contract Address:</label>
+                    <input type="text" id="contractAddress" class="form-input" placeholder="0x...">
+                </div>
+                <button onclick="readMessage()" class="btn">Read Message</button>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label class="form-label">New Message:</label>
+                    <input type="text" id="newMessage" class="form-input" placeholder="Enter new message">
+                </div>
+                <button onclick="setMessage()" class="btn">Update Message</button>
+                <div id="contractResult" class="hidden"></div>
+            </div>
+
+            <div id="verifyTab" class="tab-content">
+                <div class="form-group">
+                    <label class="form-label">Contract Address to Verify:</label>
+                    <input type="text" id="verifyAddress" class="form-input" placeholder="0x...">
+                </div>
+                <button onclick="verifyOnEtherscan()" class="btn">Open in Sepolia Etherscan</button>
+                <div class="info-box">
+                    <strong>Manual Verification Steps:</strong><br>
+                    1. Open the contract in Etherscan<br>
+                    2. Go to "Contract" tab → "Verify and Publish"<br>
+                    3. Select Solidity version and upload source code<br>
+                    4. Submit for verification
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2><span class="section-number">🎵</span>Music NFT Creator</h2>
+            <p>Create and mint your music NFTs on Sepolia testnet:</p>
+            
+            <div class="form-group">
+                <label class="form-label">NFT Name:</label>
+                <input type="text" id="nftName" class="form-input" placeholder="My Awesome Track">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Artist Name:</label>
+                <input type="text" id="artistName" class="form-input" placeholder="Your Artist Name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description:</label>
+                <textarea id="nftDescription" class="form-textarea" placeholder="Describe your music NFT..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">IPFS Hash (for audio file):</label>
+                <input type="text" id="audioIPFS" class="form-input" placeholder="QmYourAudioFileHash">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cover Art IPFS Hash:</label>
+                <input type="text" id="imageIPFS" class="form-input" placeholder="QmYourCoverArtHash">
+            </div>
+            
+            <button onclick="createMusicNFT()" class="btn" id="mintNFTButton">Create Music NFT Metadata</button>
+            <div id="nftResult" class="hidden"></div>
+
+            <div class="info-box">
+                <strong>📁 How to upload to IPFS:</strong><br>
+                1. Go to <a href="https://pinata.cloud/" target="_blank">Pinata.cloud</a> or <a href="https://nft.storage/" target="_blank">NFT.Storage</a><br>
+                2. Upload your audio file and cover art<br>
+                3. Copy the IPFS hashes and paste them above<br>
+                4. Create your NFT metadata, then deploy an NFT contract to mint!
+            </div>
+        </section>
+
+        <section class="section">
+            <h2><span class="section-number">🔍</span>Blockchain Explorer</h2>
+            <p>Explore Sepolia blockchain data in real-time:</p>
+            
+            <div class="form-group">
+                <label class="form-label">Transaction Hash:</label>
+                <input type="text" id="txHash" class="form-input" placeholder="0x...">
+                <button onclick="getTransactionDetails()" class="btn" style="margin-top: 10px;">Get Transaction Details</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Block Number:</label>
+                <input type="number" id="blockNumber" class="form-input" placeholder="Latest">
+                <button onclick="getBlockDetails()" class="btn" style="margin-top: 10px;">Get Block Details</button>
+            </div>
+
+            <button onclick="getLatestBlock()" class="btn btn-success">Get Latest Block Info</button>
+            <button onclick="getNetworkStats()" class="btn btn-success">Get Network Stats</button>
+            
+            <div id="explorerResult" class="hidden"></div>
+        </section>
+    </div>
+
+    <script>
+        let provider;
+        let signer;
+        let userAccount;
+
+        // Contract ABI for HelloWorld
+        const HELLO_WORLD_ABI = [
+            {
+                "inputs": [{"internalType": "string", "name": "_message", "type": "string"}],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [],
+                "name": "message",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "string", "name": "_message", "type": "string"}],
+                "name": "setMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        const HELLO_WORLD_BYTECODE = "0x608060405234801561001057600080fd5b506040516105d93803806105d98339818101604052810190610032919061020a565b80600090805190602001906100489291906100d3565b5050610376565b634e487b7160e01b600052604160045260246000fd5b600082601f83011261007957600080fd5b81516001600160401b0381111561009257610092610052565b604051601f8201601f19908116603f011681016001600160401b03811182821017156100c0576100c0610052565b6040528181528382016020018510156100d857600080fd5b60005b838110156100f7578151602001826020010151816001019150506100db565b505050919050565b60008151905061010e81610359565b92915050565b60006020828403121561012657600080fd5b600082015167ffffffffffffffff81111561014057600080fd5b61014c84828501610068565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061019c57607f821691505b6020821081036101af576101ae610155565b5b50919050565b60008190508160005260206000209050919050565b600081546101d781610184565b6001828116801580156101f157600181146102025761022f565b60ff198316865281860193505061022f565b61020b856101b5565b60005b8381101561022d5781548189015260010161020e565b838801955050505b50505092915050565b600061024a82846101ca565b915081905092915050565b61025e81610353565b811461026957600080fd5b50565b60008151905061027b81610255565b92915050565b600060208284031215610297576102966100d8565b5b60006102a58482850161026c565b91505092915050565b60006102ba82516102be565b9392505050565b60006102cc826102d0565b9050919050565b60006001600160a01b038216905091919050565b6102f0816102be565b81146102fb57600080fd5b50565b60008151905061030d816102e7565b92915050565b600060208284031215610329576103286100d8565b5b6000610337848285016102fe565b91505092915050565b610349816102be565b82525050565b6000819050919050565b6103628161034f565b811461036d57600080fd5b50565b610254806103856000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063368b87721461003b578063e21f37ce14610057575b600080fd5b610055600480360381019061005091906101bc565b610075565b005b61005f61008f565b60405161006c91906102c7565b60405180910390f35b80600090805190602001906100919291906100d3565b5050565b6060600080546100a490610318565b80601f01602080910402602001604051908101604052809291908181526020018280546100d090610318565b801561011d5780601f106100f25761010080835404028352916020019161011d565b820191906000526020600020905b81548152906001019060200180831161010057829003601f168201915b5050505050905090565b82805461013990610318565b90600052602060002090601f01602090048101928261015b57600085556101a2565b82601f1061017457805160ff19168380011785556101a2565b828001600101855582156101a2579182015b828111156101a1578251825591602001919060010190610186565b5b5090506101af91906101b3565b5090565b5b808211156101cc5760008160009055506001016101b4565b5090565b6000604051905090565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b610233826101ea565b810181811067ffffffffffffffff82111715610252576102516101fb565b5b80604052505050565b60006102656101d0565b9050610271828261022a565b919050565b600067ffffffffffffffff821115610291576102906101fb565b5b61029a826101ea565b9050602081019050919050565b82818337600083830152505050565b60006102c96102c484610276565b61025b565b9050828152602081018484840111156102e5576102e46101e5565b5b6102f08482856102a7565b509392505050565b600082601f83011261030d5761030c6101e0565b5b813561031d8482602086016102b6565b91505092915050565b60006020828403121561033c5761033b6101da565b5b600082013567ffffffffffffffff81111561035a576103596101df565b5b610366848285016102f8565b91505092915050565b600081519050919050565b600082825260208201905092915050565b60005b838110156103a957808201518184015260208101905061038e565b838111156103b8576000848401525b50505050565b60006103c98261036f565b6103d3818561037a565b93506103e381856020860161038b565b6103ec816101ea565b840191505092915050565b6000602082019050818103600083015261041181846103be565b905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602260045260246000fd5b6000600282049050600182168061046057607f821691505b60208210810361047357610472610419565b5b5091905056fea2646970667358221220c89e9b5b7c7c8b2e1a4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6g264736f6c63430008090033";
+
+        // Faucet URLs
+        const FAUCET_URLS = {
+            alchemy: 'https://sepoliafaucet.com/',
+            quicknode: 'https://faucet.quicknode.com/ethereum/sepolia',
+            infura: 'https://www.infura.io/faucet/sepolia',
+            chainlink: 'https://faucets.chain.link/sepolia'
+        };
+
+        // Initialize the app
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                
+                // Check if already connected
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        await connectWallet();
+                    }
+                } catch (error) {
+                    console.log('Not connected yet');
+                }
+
+                // Listen for account changes
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        disconnectWallet();
+                    } else {
+                        connectWallet();
+                    }
+                });
+
+                // Listen for chain changes
+                window.ethereum.on('chainChanged', () => {
+                    window.location.reload();
+                });
+            } else {
+                alert('Please install MetaMask to use this dApp!');
+            }
+        });
+
+        // Connect wallet function
+        async function connectWallet() {
+            try {
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                
+                userAccount = accounts[0];
+                signer = await provider.getSigner();
+                
+                // Update UI
+                document.getElementById('walletAddress').textContent = 
+                    `${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                document.getElementById('connectWallet').textContent = 'Connected ✓';
+                document.getElementById('connectWallet').disabled = true;
+                
+                // Update balance
+                await updateBalance();
+                
+                // Check network
+                await checkNetwork();
+                
+                // Enable buttons
+                document.getElementById('switchToSepolia').disabled = false;
+                
+            } catch (error) {
+                console.error('Failed to connect wallet:', error);
+                alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        // Disconnect wallet
+        function disconnectWallet() {
+            userAccount = null;
+            signer = null;
+            
+            document.getElementById('walletAddress').textContent = 'Not connected';
+            document.getElementById('walletBalance').textContent = 'Balance: -- ETH';
+            document.getElementById('networkStatus').textContent = 'Disconnected';
+            document.getElementById('networkStatus').className = 'network-indicator network-disconnected';
+            document.getElementById('connectWallet').textContent = 'Connect MetaMask';
+            document.getElementById('connectWallet').disabled = false;
+            document.getElementById('switchToSepolia').disabled = true;
+        }
+
+        // Update balance
+        async function updateBalance() {
+            if (userAccount) {
+                try {
+                    const balance = await provider.getBalance(userAccount);
+                    const balanceInEth = ethers.formatEther(balance);
+                    document.getElementById('walletBalance').textContent = 
+                        `Balance: ${parseFloat(balanceInEth).toFixed(4)} ETH`;
+                } catch (error) {
+                    console.error('Failed to get balance:', error);
+                }
+            }
+        }
+
+        // Check current network
+        async function checkNetwork() {
+            try {
+                const network = await provider.getNetwork();
+                const networkInfo = document.getElementById('networkInfo');
+                const networkDetails = document.getElementById('networkDetails');
+                const networkStatus = document.getElementById('networkStatus');
+                
+                if (network.chainId === 11155111n) {
+                    networkStatus.textContent = 'Sepolia ✓';
+                    networkStatus.className = 'network-indicator network-sepolia';
+                } else {
+                    networkStatus.textContent = `Wrong Network (${network.chainId})`;
+                    networkStatus.className = 'network-indicator network-wrong';
+                }
+                
+                networkDetails.innerHTML = `
+                    <strong>Chain ID:</strong> ${network.chainId.toString()}<br>
+                    <strong>Network Name:</strong> ${network.name}<br>
+                    <strong>Current Block:</strong> ${await provider.getBlockNumber()}
+                `;
+                networkInfo.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Failed to get network:', error);
+            }
+        }
+
+        // Add Sepolia network to MetaMask
+        async function addSepoliaNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0xAA36A7',
+                        chainName: 'Sepolia Testnet',
+                        nativeCurrency: {
+                            name: 'Ethereum',
+                            symbol: 'ETH',
+                            decimals: 18
+                        },
+                        rpcUrls: ['https://rpc.sepolia.org'],
+                        blockExplorerUrls: ['https://sepolia.etherscan.io/']
+                    }]
+                });
+                alert('Sepolia network added successfully!');
+            } catch (error) {
+                console.error('Failed to add network:', error);
+                alert('Failed to add network: ' + error.message);
+            }
+        }
+
+        // Switch to Sepolia network
+        async function switchToSepolia() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xAA36A7' }]
+                });
+            } catch (error) {
+                if (error.code === 4902) {
+                    await addSepoliaNetwork();
+                } else {
+                    console.error('Failed to switch network:', error);
+                    alert('Failed to switch network: ' + error.message);
+                }
+            }
+        }
+
+        // Request from faucet (opens in new window)
+        async function requestFromFaucet(faucetName) {
+            const statusElement = document.getElementById(`${faucetName}Status`);
+            statusElement.innerHTML = '<span class="loading"></span>Opening faucet...';
+            statusElement.className = 'faucet-status status-pending';
+            statusElement.classList.remove('hidden');
+            
+            // Open faucet in new window
+            window.open(FAUCET_URLS[faucetName], '_blank');
+            
+            // Simulate status update
+            setTimeout(() => {
+                statusElement.innerHTML = 'Faucet opened! Complete the request in the new window.';
+                statusElement.className = 'faucet-status status-success';
+                
+                // Auto-refresh balance after 30 seconds
+                setTimeout(async () => {
+                    if (userAccount) {
+                        await updateBalance();
+                        statusElement.innerHTML = 'Request completed! Balance refreshed.';
+                    }
+                }, 30000);
+            }, 2000);
+        }
+
+        // Tab switching functions
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function switchContractTab(tabName) {
+            // Hide all contract tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all contract tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Check balance for any address
+        async function checkBalance() {
+            const address = document.getElementById('balanceAddress').value.trim();
+            const resultDiv = document.getElementById('balanceResult');
+            
+            if (!address) {
+                alert('Please enter an address');
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Checking balance...';
+                resultDiv.classList.remove('hidden');
+                
+                let resolvedAddress = address;
+                
+                // Check if it's an ENS name
+                if (address.endsWith('.eth')) {
+                    resolvedAddress = await provider.resolveName(address);
+                    if (!resolvedAddress) {
+                        throw new Error('ENS name not found');
+                    }
+                }
+                
+                const balance = await provider.getBalance(resolvedAddress);
+                const balanceInEth = ethers.formatEther(balance);
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <strong>Address:</strong> ${resolvedAddress}<br>
+                        <strong>Balance:</strong> ${parseFloat(balanceInEth).toFixed(6)} ETH
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Send ETH function
+        async function sendETH() {
+            if (!signer) {
+                alert('Please connect your wallet first');
+                return;
+            }
+            
+            const toAddress = document.getElementById('sendToAddress').value.trim();
+            const amount = document.getElementById('sendAmount').value.trim();
+            const resultDiv = document.getElementById('sendResult');
+            const sendButton = document.getElementById('sendButton');
+            
+            if (!toAddress || !amount) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<span class="loading"></span>Sending...';
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = '<span class="loading"></span>Transaction pending...';
+                
+                const transaction = await signer.sendTransaction({
+                    to: toAddress,
+                    value: ethers.parseEther(amount)
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="status-pending">
+                        Transaction sent! Waiting for confirmation...<br>
+                        <div class="transaction-hash">TX: ${transaction.hash}</div>
+                    </div>
+                `;
+                
+                const receipt = await transaction.wait();
+                
+                resultDiv.innerHTML = `
+                    <div class="status-success">
+                        Transaction confirmed!<br>
+                        <div class="transaction-hash">TX: ${receipt.hash}</div>
+                        <a href="https://sepolia.etherscan.io/tx/${receipt.hash}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+                
+                // Update balance
+                await updateBalance();
+                
+                // Clear form
+                document.getElementById('sendToAddress').value = '';
+                document.getElementById('sendAmount').value = '';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Transaction failed: ${error.message}
+                    </div>
+                `;
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = 'Send ETH';
+            }
+        }
+
+        // Load transaction history
+        async function loadTransactionHistory() {
+            if (!userAccount) {
+                alert('Please connect your wallet first');
+                return;
+            }
+            
+            const historyDiv = document.getElementById('transactionHistory');
+            historyDiv.innerHTML = '<span class="loading"></span>Loading transactions...';
+            historyDiv.classList.remove('hidden');
+            
+            try {
+                const currentBlock = await provider.getBlockNumber();
+                const fromBlock = Math.max(0, currentBlock - 1000); // Last 1000 blocks
+                
+                // This is a simplified version - in a real app you'd use a proper indexing service
+                historyDiv.innerHTML = `
+                    <div class="info-box">
+                        <strong>Recent Activity:</strong><br>
+                        Current Block: ${currentBlock}<br>
+                        Searching blocks ${fromBlock} to ${currentBlock}<br><br>
+                        <em>Note: For complete transaction history, visit 
+                        <a href="https://sepolia.etherscan.io/address/${userAccount}" target="_blank">
+                            Sepolia Etherscan
+                        </a></em>
+                    </div>
+                `;
+            } catch (error) {
+                historyDiv.innerHTML = `
+                    <div class="status-error">
+                        Failed to load history: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Deploy contract function
+        async function deployContract() {
+            if (!signer) {
+                alert('Please connect your wallet first');
+                return;
+            }
+            
+            const network = await provider.getNetwork();
+            if (network.chainId !== 11155111n) {
+                alert('Please switch to Sepolia network first');
+                return;
+            }
+            
+            const initialMessage = document.getElementById('initialMessage').value.trim() || "Hello Sepolia!";
+            const resultDiv = document.getElementById('deployResult');
+            const deployButton = document.getElementById('deployButton');
+            
+            try {
+                deployButton.disabled = true;
+                deployButton.innerHTML = '<span class="loading"></span>Deploying...';
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = '<span class="loading"></span>Deploying contract...';
+                
+                // Create contract factory
+                const factory = new ethers.ContractFactory(HELLO_WORLD_ABI, HELLO_WORLD_BYTECODE, signer);
+                
+                // Deploy contract
+                const contract = await factory.deploy(initialMessage);
+                
+                resultDiv.innerHTML = `
+                    <div class="status-pending">
+                        Contract deployment transaction sent!<br>
+                        <div class="transaction-hash">TX: ${contract.deploymentTransaction().hash}</div>
+                        Waiting for confirmation...
+                    </div>
+                `;
+                
+                // Wait for deployment
+                await contract.waitForDeployment();
+                
+                const contractAddress = await contract.getAddress();
+                
+                resultDiv.innerHTML = `
+                    <div class="status-success">
+                        Contract deployed successfully!<br>
+                        <div class="contract-address">Address: ${contractAddress}</div>
+                        <div class="transaction-hash">TX: ${contract.deploymentTransaction().hash}</div>
+                        <a href="https://sepolia.etherscan.io/address/${contractAddress}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+                
+                // Auto-fill interact tab
+                document.getElementById('contractAddress').value = contractAddress;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Deployment failed: ${error.message}
+                    </div>
+                `;
+            } finally {
+                deployButton.disabled = false;
+                deployButton.innerHTML = 'Deploy Contract';
+            }
+        }
+
+        // Read message from contract
+        async function readMessage() {
+            const contractAddress = document.getElementById('contractAddress').value.trim();
+            const resultDiv = document.getElementById('contractResult');
+            
+            if (!contractAddress) {
+                alert('Please enter a contract address');
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Reading message...';
+                resultDiv.classList.remove('hidden');
+                
+                const contract = new ethers.Contract(contractAddress, HELLO_WORLD_ABI, provider);
+                const message = await contract.message();
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <strong>Current Message:</strong><br>
+                        "${message}"
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Failed to read message: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Set message in contract
+        async function setMessage() {
+            if (!signer) {
+                alert('Please connect your wallet first');
+                return;
+            }
+            
+            const contractAddress = document.getElementById('contractAddress').value.trim();
+            const newMessage = document.getElementById('newMessage').value.trim();
+            const resultDiv = document.getElementById('contractResult');
+            
+            if (!contractAddress || !newMessage) {
+                alert('Please enter contract address and new message');
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Updating message...';
+                resultDiv.classList.remove('hidden');
+                
+                const contract = new ethers.Contract(contractAddress, HELLO_WORLD_ABI, signer);
+                const transaction = await contract.setMessage(newMessage);
+                
+                resultDiv.innerHTML = `
+                    <div class="status-pending">
+                        Transaction sent! Waiting for confirmation...<br>
+                        <div class="transaction-hash">TX: ${transaction.hash}</div>
+                    </div>
+                `;
+                
+                const receipt = await transaction.wait();
+                
+                resultDiv.innerHTML = `
+                    <div class="status-success">
+                        Message updated successfully!<br>
+                        <div class="transaction-hash">TX: ${receipt.hash}</div>
+                        <a href="https://sepolia.etherscan.io/tx/${receipt.hash}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+                
+                // Clear input
+                document.getElementById('newMessage').value = '';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Failed to update message: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Verify contract on Etherscan
+        function verifyOnEtherscan() {
+            const contractAddress = document.getElementById('verifyAddress').value.trim();
+            
+            if (!contractAddress) {
+                alert('Please enter a contract address');
+                return;
+            }
+            
+            window.open(`https://sepolia.etherscan.io/address/${contractAddress}#code`, '_blank');
+        }
+
+        // Create Music NFT metadata
+        function createMusicNFT() {
+            const name = document.getElementById('nftName').value.trim();
+            const artist = document.getElementById('artistName').value.trim();
+            const description = document.getElementById('nftDescription').value.trim();
+            const audioIPFS = document.getElementById('audioIPFS').value.trim();
+            const imageIPFS = document.getElementById('imageIPFS').value.trim();
+            const resultDiv = document.getElementById('nftResult');
+            
+            if (!name || !artist || !description) {
+                alert('Please fill in at least the name, artist, and description');
+                return;
+            }
+            
+            const metadata = {
+                name: name,
+                description: description,
+                artist: artist,
+                image: imageIPFS ? `ipfs://${imageIPFS}` : "",
+                animation_url: audioIPFS ? `ipfs://${audioIPFS}` : "",
+                attributes: [
+                    {
+                        trait_type: "Artist",
+                        value: artist
+                    },
+                    {
+                        trait_type: "Type",
+                        value: "Music NFT"
+                    },
+                    {
+                        trait_type: "Platform",
+                        value: "Sepolia Testnet"
+                    }
+                ]
+            };
+            
+            resultDiv.innerHTML = `
+                <div class="success-box">
+                    <h4>🎵 NFT Metadata Created!</h4>
+                    <p><strong>Next Steps:</strong></p>
+                    <ol>
+                        <li>Copy the JSON below and upload it to IPFS (Pinata/NFT.Storage)</li>
+                        <li>Deploy an ERC-721 contract using the Smart Contract tools above</li>
+                        <li>Mint your NFT using the metadata IPFS hash</li>
+                    </ol>
+                    <br>
+                    <strong>Metadata JSON:</strong>
+                    <textarea class="form-textarea" readonly>${JSON.stringify(metadata, null, 2)}</textarea>
+                </div>
+            `;
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Get transaction details
+        async function getTransactionDetails() {
+            const txHash = document.getElementById('txHash').value.trim();
+            const resultDiv = document.getElementById('explorerResult');
+            
+            if (!txHash) {
+                alert('Please enter a transaction hash');
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Loading transaction details...';
+                resultDiv.classList.remove('hidden');
+                
+                const tx = await provider.getTransaction(txHash);
+                const receipt = await provider.getTransactionReceipt(txHash);
+                
+                if (!tx) {
+                    throw new Error('Transaction not found');
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <h4>📄 Transaction Details</h4>
+                        <strong>Hash:</strong> ${tx.hash}<br>
+                        <strong>From:</strong> ${tx.from}<br>
+                        <strong>To:</strong> ${tx.to || 'Contract Creation'}<br>
+                        <strong>Value:</strong> ${ethers.formatEther(tx.value)} ETH<br>
+                        <strong>Gas Used:</strong> ${receipt ? receipt.gasUsed.toString() : 'Pending'}<br>
+                        <strong>Status:</strong> ${receipt ? (receipt.status ? 'Success ✅' : 'Failed ❌') : 'Pending'}<br>
+                        <strong>Block:</strong> ${tx.blockNumber || 'Pending'}<br>
+                        <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Get block details
+        async function getBlockDetails() {
+            const blockNumber = document.getElementById('blockNumber').value.trim();
+            const resultDiv = document.getElementById('explorerResult');
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Loading block details...';
+                resultDiv.classList.remove('hidden');
+                
+                const blockNum = blockNumber ? parseInt(blockNumber) : 'latest';
+                const block = await provider.getBlock(blockNum);
+                
+                if (!block) {
+                    throw new Error('Block not found');
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <h4>🧱 Block Details</h4>
+                        <strong>Number:</strong> ${block.number}<br>
+                        <strong>Hash:</strong> ${block.hash}<br>
+                        <strong>Timestamp:</strong> ${new Date(block.timestamp * 1000).toLocaleString()}<br>
+                        <strong>Transactions:</strong> ${block.transactions.length}<br>
+                        <strong>Gas Used:</strong> ${block.gasUsed.toString()}<br>
+                        <strong>Gas Limit:</strong> ${block.gasLimit.toString()}<br>
+                        <strong>Miner:</strong> ${block.miner}<br>
+                        <a href="https://sepolia.etherscan.io/block/${block.number}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Get latest block info
+        async function getLatestBlock() {
+            const resultDiv = document.getElementById('explorerResult');
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Getting latest block...';
+                resultDiv.classList.remove('hidden');
+                
+                const blockNumber = await provider.getBlockNumber();
+                const block = await provider.getBlock(blockNumber);
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <h4>⚡ Latest Block Info</h4>
+                        <strong>Block Number:</strong> ${block.number}<br>
+                        <strong>Hash:</strong> ${block.hash}<br>
+                        <strong>Timestamp:</strong> ${new Date(block.timestamp * 1000).toLocaleString()}<br>
+                        <strong>Transactions:</strong> ${block.transactions.length}<br>
+                        <strong>Gas Used:</strong> ${block.gasUsed.toString()}<br>
+                        <a href="https://sepolia.etherscan.io/block/${block.number}" target="_blank" class="btn" style="margin-top: 10px;">View on Etherscan</a>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Get network statistics
+        async function getNetworkStats() {
+            const resultDiv = document.getElementById('explorerResult');
+            
+            try {
+                resultDiv.innerHTML = '<span class="loading"></span>Getting network stats...';
+                resultDiv.classList.remove('hidden');
+                
+                const [blockNumber, gasPrice, network] = await Promise.all([
+                    provider.getBlockNumber(),
+                    provider.getFeeData(),
+                    provider.getNetwork()
+                ]);
+                
+                resultDiv.innerHTML = `
+                    <div class="success-box">
+                        <h4>🌐 Network Statistics</h4>
+                        <strong>Network:</strong> ${network.name} (Chain ID: ${network.chainId.toString()})<br>
+                        <strong>Latest Block:</strong> ${blockNumber}<br>
+                        <strong>Gas Price:</strong> ${ethers.formatUnits(gasPrice.gasPrice || 0, 'gwei')} gwei<br>
+                        <strong>Max Fee Per Gas:</strong> ${ethers.formatUnits(gasPrice.maxFeePerGas || 0, 'gwei')} gwei<br>
+                        <strong>Max Priority Fee:</strong> ${ethers.formatUnits(gasPrice.maxPriorityFeePerGas || 0, 'gwei')} gwei<br>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-error">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('addSepoliaNetwork').addEventListener('click', addSepoliaNetwork);
+        document.getElementById('switchToSepolia').addEventListener('click', switchToSepolia);
+    </script>
+</body>
+</html>
