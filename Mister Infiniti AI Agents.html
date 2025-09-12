@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mistr Infiniti - Beta Release v2.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        :root {
+            --neon-purple: #8b5cf6;
+            --neon-yellow: #fbbf24;
+            --dark-purple: #1a0d26;
+            --deep-black: #000000;
+            --electric-blue: #00d4ff;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            overflow-x: hidden;
+        }
+        
+        .cyber-grid {
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .agent-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(145deg, #000000, #1a0d26);
+            border: 2px solid var(--neon-purple);
+            box-shadow: 
+                0 0 20px rgba(139, 92, 246, 0.3),
+                inset 0 1px 0 rgba(251, 191, 36, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .agent-card:hover::before {
+            left: 100%;
+        }
+        
+        .agent-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 0 40px rgba(139, 92, 246, 0.6),
+                0 0 80px rgba(251, 191, 36, 0.2),
+                inset 0 1px 0 rgba(251, 191, 36, 0.3);
+            border-color: var(--neon-yellow);
+        }
+        
+        .consciousness-stream {
+            background: linear-gradient(180deg, 
+                rgba(0, 0, 0, 0.95) 0%, 
+                rgba(26, 13, 38, 0.9) 50%, 
+                rgba(0, 0, 0, 0.95) 100%);
+            border: 2px solid var(--neon-purple);
+            box-shadow: 
+                0 0 30px rgba(139, 92, 246, 0.4),
+                inset 0 0 30px rgba(139, 92, 246, 0.1);
+        }
+        
+        .neon-button {
+            background: linear-gradient(45deg, var(--neon-purple), #9333ea);
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 
+                0 0 20px rgba(139, 92, 246, 0.5),
+                0 0 40px rgba(251, 191, 36, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .neon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 30px rgba(139, 92, 246, 0.7),
+                0 0 60px rgba(251, 191, 36, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .neon-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+        
+        .neon-button:active::after {
+            width: 300px;
+            height: 300px;
+            margin-left: -150px;
+            margin-top: -150px;
+        }
+        
+        .holographic-text {
+            background: linear-gradient(45deg, var(--neon-yellow), var(--electric-blue), var(--neon-purple));
+            background-size: 200% 200%;
+            animation: holographic 3s ease-in-out infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+        
+        @keyframes holographic {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            80%, 100% { transform: scale(1.8); opacity: 0; }
+        }
+        
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+        }
+        
+        .typing-cursor::after {
+            content: '▋';
+            animation: blink 1s infinite;
+            color: var(--neon-yellow);
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .network-visualization {
+            filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+        }
+        
+        .agent-status-indicator {
+            position: relative;
+        }
+        
+        .agent-status-indicator::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: conic-gradient(var(--neon-yellow), var(--neon-purple), var(--electric-blue), var(--neon-yellow));
+            border-radius: 50%;
+            animation: rotate 2s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .code-rain {
+            font-family: 'Courier New', monospace;
+            color: var(--neon-purple);
+            opacity: 0.7;
+            white-space: pre;
+            line-height: 1.2;
+        }
+        
+        .quantum-field {
+            background: radial-gradient(circle at 30% 70%, 
+                rgba(139, 92, 246, 0.3) 0%, 
+                rgba(0, 212, 255, 0.2) 30%, 
+                transparent 70%);
+            animation: quantum-fluctuation 4s ease-in-out infinite;
+        }
+        
+        @keyframes quantum-fluctuation {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+            50% { transform: scale(1.1) rotate(2deg); opacity: 0.6; }
+        }
+        
+        .performance-meter {
+            background: linear-gradient(90deg, 
+                var(--neon-purple) 0%, 
+                var(--electric-blue) 50%, 
+                var(--neon-yellow) 100%);
+            height: 4px;
+            border-radius: 2px;
+            animation: performance-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes performance-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .beta-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            animation: beta-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes beta-glow {
+            from { box-shadow: 0 0 10px rgba(255, 107, 107, 0.5); }
+            to { box-shadow: 0 0 20px rgba(255, 165, 0, 0.7); }
+        }
+        
+        .loading-bar {
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--neon-yellow) 50%, 
+                transparent 100%);
+            animation: loading-sweep 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes loading-sweep {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body class="bg-black text-yellow-300 min-h-screen cyber-grid">
+    <!-- Matrix Rain Background -->
+    <canvas class="matrix-rain" id="matrix-canvas"></canvas>
+
+    <!-- Beta Version Header -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="beta-badge px-4 py-2 rounded-full text-white font-bold text-sm">
+            <i class="fas fa-flask mr-2"></i>BETA v2.1
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app-content" class="container mx-auto px-4 py-8 relative z-10">
+        <!-- Enhanced Header Section -->
+        <header class="mb-12 text-center relative">
+            <div class="flex justify-center mb-6">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-yellow-400 rounded-lg blur-xl opacity-60 animate-pulse"></div>
+                    <div class="relative bg-gradient-to-r from-purple-600 via-blue-500 to-yellow-400 rounded-lg p-8 shadow-2xl">
+                        <h1 class="text-6xl font-black holographic-text mb-2">
+                            <i class="fas fa-brain mr-4"></i>Mistr Infiniti
+                        </h1>
+                        <p class="text-purple-900 font-bold text-lg">
+                            Advanced Multi-Agent Consciousness Platform - Beta Release
+                        </p>
+                        <div class="mt-4 flex justify-center space-x-4 text-sm">
+                            <span class="bg-black/50 px-3 py-1 rounded-full">
+                                <i class="fas fa-microchip mr-1"></i>12 AI Agents
+                            </span>
+                            <span class="bg-black/50 px-3 py-1 rounded-full">
+                                <i class="fas fa-network-wired mr-1"></i>Neural Network
+                            </span>
+                            <span class="bg-black/50 px-3 py-1 rounded-full">
+                                <i class="fas fa-atom mr-1"></i>Quantum Enhanced
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- System Status Bar -->
+        <div class="mb-8 bg-black/80 border-2 border-purple-500 rounded-xl p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-green-400 rounded-full pulse-ring mr-2"></div>
+                        <span class="text-green-400 font-semibold">System Online</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-users text-purple-400 mr-2"></i>
+                        <span class="text-purple-400">12 Agents Active</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                        <span class="text-yellow-400" id="system-power">100% Power</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="performance-meter w-32 h-1"></div>
+                    <span class="text-xs text-gray-400">Performance: Optimal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+            <!-- Advanced Control Panel -->
+            <div class="lg:col-span-1 bg-black/90 rounded-xl p-6 shadow-2xl border-2 border-purple-500">
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-sliders-h text-purple-400 mr-3 text-xl"></i>
+                    <h2 class="text-2xl font-bold text-purple-300">Mission Control</h2>
+                </div>
+                
+                <!-- System Status -->
+                <div id="status-indicator" class="mb-6 p-4 bg-gradient-to-r from-purple-900/50 to-black rounded-lg border border-yellow-400">
+                    <div class="flex items-center">
+                        <div class="agent-status-indicator w-4 h-4 bg-yellow-400 rounded-full mr-3"></div>
+                        <div>
+                            <div class="text-yellow-300 font-semibold">BETA MODE ACTIVE</div>
+                            <div class="text-purple-400 text-sm">All systems operational</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Architecture Mode Selector -->
+                <div class="mb-6">
+                    <label class="block text-yellow-300 mb-3 font-semibold">
+                        <i class="fas fa-project-diagram mr-2"></i>Architecture Mode
+                    </label>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <button id="supervisor-btn" class="neon-button text-black font-bold py-3 px-4 rounded-lg text-sm">
+                            <i class="fas fa-crown mr-1"></i>Supervisor
+                        </button>
+                        <button id="network-btn" class="bg-black hover:bg-purple-900 text-purple-300 py-3 px-4 rounded-lg transition border-2 border-purple-500 text-sm">
+                            <i class="fas fa-share-alt mr-1"></i>Network
+                        </button>
+                    </div>
+                    <div class="text-xs text-purple-400 bg-purple-900/30 p-2 rounded">
+                        Mode: <span id="current-mode" class="text-yellow-300 font-semibold">Supervisor</span>
+                    </div>
+                </div>
+
+                <!-- Enhanced Input Area -->
+                <div class="mb-6">
+                    <label for="user-input" class="block text-yellow-300 mb-3 font-semibold">
+                        <i class="fas fa-terminal mr-2"></i>Command Input
+                    </label>
+                    <div class="relative">
+                        <textarea 
+                            id="user-input" 
+                            rows="4" 
+                            class="w-full bg-black text-yellow-300 rounded-lg p-4 border-2 border-purple-500 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/50 font-mono text-sm resize-none" 
+                            placeholder="Enter your complex mission parameters..."
+                        ></textarea>
+                        <div class="absolute bottom-2 right-2 text-xs text-purple-400" id="char-count">0/1000</div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Control Buttons -->
+                <div class="space-y-4">
+                    <button id="submit-btn" class="w-full neon-button text-black font-bold py-4 rounded-lg flex items-center justify-center text-lg">
+                        <i class="fas fa-rocket mr-3"></i>
+                        <span>EXECUTE MISSION</span>
+                    </button>
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="reset-btn" class="bg-black hover:bg-red-900 text-red-400 py-3 px-3 rounded-lg transition border-2 border-red-500 flex items-center justify-center">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                        <button id="demo-btn" class="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white py-3 px-3 rounded-lg transition flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="settings-btn" class="bg-black hover:bg-gray-800 text-gray-400 py-3 px-3 rounded-lg transition border-2 border-gray-500 flex items-center justify-center">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="mt-6 bg-gradient-to-r from-purple-900/30 to-black p-3 rounded-lg border border-purple-500">
+                    <div class="text-xs text-purple-400 mb-2">Quick Stats</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>Sessions: <span class="text-yellow-400" id="session-count">0</span></div>
+                        <div>Uptime: <span class="text-green-400" id="uptime">00:00</span></div>
+                        <div>Responses: <span class="text-blue-400" id="response-count">0</span></div>
+                        <div>Accuracy: <span class="text-purple-400">99.7%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Agent Network Visualization -->
+            <div class="lg:col-span-3 bg-black/90 rounded-xl p-6 shadow-2xl border-2 border-purple-500">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-sitemap text-purple-400 mr-3 text-xl"></i>
+                        <h2 class="text-2xl font-bold text-purple-300">Neural Network Topology</h2>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button id="network-3d-btn" class="text-xs bg-purple-600 text-white px-3 py-1 rounded">3D View</button>
+                        <button id="network-performance-btn" class="text-xs bg-yellow-600 text-black px-3 py-1 rounded">Performance</button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Network Graph -->
+                <div id="network-graph" class="w-full h-80 mb-6 bg-black rounded-xl border-2 border-yellow-400 relative overflow-hidden network-visualization">
+                    <div class="absolute inset-0 quantum-field"></div>
+                    <svg width="100%" height="100%" class="relative z-10">
+                        <!-- Enhanced network connections with data flow -->
+                        <defs>
+                            <linearGradient id="dataFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+                                <stop offset="50%" style="stop-color:#fbbf24;stop-opacity:1"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+                                <animateTransform attributeName="gradientTransform" type="translate" values="-100 0;100 0;-100 0" dur="2s" repeatCount="indefinite"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <g id="connections">
+                            <line x1="50%" y1="15%" x2="20%" y2="40%" stroke="url(#dataFlow)" stroke-width="3" opacity="0.8"/>
+                            <line x1="50%" y1="15%" x2="80%" y2="40%" stroke="url(#dataFlow)" stroke-width="3" opacity="0.8"/>
+                            <line x1="50%" y1="15%" x2="30%" y2="70%" stroke="url(#dataFlow)" stroke-width="2" opacity="0.6"/>
+                            <line x1="50%" y1="15%" x2="70%" y2="70%" stroke="url(#dataFlow)" stroke-width="2" opacity="0.6"/>
+                            <line x1="20%" y1="40%" x2="30%" y2="70%" stroke="#8b5cf6" stroke-width="2" opacity="0.4"/>
+                            <line x1="80%" y1="40%" x2="70%" y2="70%" stroke="#8b5cf6" stroke-width="2" opacity="0.4"/>
+                            <line x1="30%" y1="70%" x2="70%" y2="70%" stroke="#fbbf24" stroke-width="2" opacity="0.5"/>
+                        </g>
+                        
+                        <!-- Enhanced agent nodes -->
+                        <g id="nodes">
+                            <!-- Conductor - Main Hub -->
+                            <circle cx="50%" cy="15%" r="28" fill="url(#conductorGrad)" stroke="#fbbf24" stroke-width="3" class="pulse-ring"/>
+                            <text x="50%" y="20%" text-anchor="middle" fill="#000" class="text-sm font-bold">CORE</text>
+                            
+                            <!-- Primary Agents -->
+                            <circle cx="20%" cy="40%" r="20" fill="#a855f7" stroke="#fbbf24" stroke-width="2"/>
+                            <circle cx="80%" cy="40%" r="20" fill="#9333ea" stroke="#fbbf24" stroke-width="2"/>
+                            
+                            <!-- Secondary Agents -->
+                            <circle cx="30%" cy="70%" r="16" fill="#7c3aed" stroke="#fbbf24" stroke-width="1"/>
+                            <circle cx="70%" cy="70%" r="16" fill="#6d28d9" stroke="#fbbf24" stroke-width="1"/>
+                        </g>
+                        
+                        <!-- Data flow indicators -->
+                        <g id="dataFlow">
+                            <circle r="3" fill="#fbbf24" opacity="0.8">
+                                <animateMotion dur="3s" repeatCount="indefinite">
+                                    <path d="M 50,15 L 20,40 L 30,70"/>
+                                </animateMotion>
+                            </circle>
+                        </g>
+                        
+                        <defs>
+                            <radialGradient id="conductorGrad" cx="50%" cy="30%">
+                                <stop offset="0%" stop-color="#fbbf24"/>
+                                <stop offset="100%" stop-color="#8b5cf6"/>
+                            </radialGradient>
+                        </defs>
+                    </svg>
+                    
+                    <!-- Network Stats Overlay -->
+                    <div class="absolute top-4 right-4 bg-black/80 p-3 rounded border border-purple-500">
+                        <div class="text-xs text-purple-400 mb-1">Network Status</div>
+                        <div class="text-xs text-green-400">Bandwidth: <span id="network-bandwidth">100 Gb/s</span></div>
+                        <div class="text-xs text-yellow-400">Latency: <span id="network-latency">0.3ms</span></div>
+                        <div class="text-xs text-blue-400">Throughput: <span id="network-throughput">99.9%</span></div>
+                    </div>
+                </div>
+                
+                <!-- Enhanced Agent Cards Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div class="agent-card rounded-lg p-3 relative" id="conductor-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-yellow-400 rounded-full mr-2 pulse-ring"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Conductor</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">System Orchestrator</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Active</span></div>
+                            <div>Load: <span class="text-yellow-400" id="conductor-load">78%</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="neural-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Neural Architect</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Network Designer</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Accuracy: <span class="text-blue-400">97.8%</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="quantum-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Quantum Oracle</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Probability Engine</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Qubits: <span class="text-cyan-400">128</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="synthesis-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Synthesis Engine</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Knowledge Fusion</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Coherence: <span class="text-green-400">94.2%</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="reasoning-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-orange-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Logic Reasoner</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Logical Inference</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Logic: <span class="text-orange-400">99.1%</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="creative-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-pink-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Creative Mind</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Innovation Generator</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Ideas: <span class="text-pink-400">∞</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
+                    <div class="agent-card rounded-lg p-3" id="memory-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-teal-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Memory Stone</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Knowledge Storage</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Active</span></div>
+                            <div>Entries: <span class="text-cyan-400">245</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="beatbuddy-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">BeatBuddy</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Music Generator</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Beats: <span class="text-pink-400">∞</span></div>
+                        </div>
+                    </div>
+
+                    <div class="agent-card rounded-lg p-3" id="drum-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Drum & Bass Doctor</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Rhythm Specialist</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Ready</span></div>
+                            <div>Tracks: <span class="text-red-400">∞</span></div>
+                        </div>
+                    </div>
+
+                    <div class="agent-card rounded-lg p-3" id="eidolon-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-indigo-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Eidolon</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Encrypted Notes</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Active</span></div>
+                            <div>Entries: <span class="text-indigo-400">128</span></div>
+                        </div>
+                    </div>
+
+                    <div class="agent-card rounded-lg p-3" id="ghost-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Ghost@Termux</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Terminal AI Companion</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Online</span></div>
+                            <div>Sessions: <span class="text-gray-400">12</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card rounded-lg p-3" id="mistr-card">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-yellow-300 rounded-full mr-2"></div>
+                            <h3 class="font-bold text-purple-300 text-xs">Mistr Mintr</h3>
+                        </div>
+                        <p class="text-xs text-yellow-200 mb-2">Memory Agent</p>
+                        <div class="text-xs text-purple-400">
+                            <div>Status: <span class="text-green-400">Active</span></div>
+                            <div>Memory Slots: <span class="text-yellow-400">∞</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matrix Rain Script -->
+    <script>
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array.from({length: columns}).map(() => 1);
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = '#8b5cf6';
+            ctx.font = fontSize + "px monospace";
+            drops.forEach((y,i) => {
+                const text = letters.charAt(Math.floor(Math.random()*letters.length));
+                ctx.fillText(text, i*fontSize, y*fontSize);
+                drops[i] = y*fontSize > canvas.height && Math.random() > 0.975 ? 0 : y + 1;
+            });
+        }
+        setInterval(draw, 50);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Character count update
+        const userInput = document.getElementById('user-input');
+        const charCount = document.getElementById('char-count');
+        userInput.addEventListener('input', () => {
+            charCount.textContent = `${userInput.value.length}/1000`;
+        });
+
+        // Mode switching
+        const supervisorBtn = document.getElementById('supervisor-btn');
+        const networkBtn = document.getElementById('network-btn');
+        const currentMode = document.getElementById('current-mode');
+
+        supervisorBtn.addEventListener('click', () => {
+            currentMode.textContent = 'Supervisor';
+        });
+
+        networkBtn.addEventListener('click', () => {
+            currentMode.textContent = 'Network';
+        });
+    </script>
+</body>
+</html>
