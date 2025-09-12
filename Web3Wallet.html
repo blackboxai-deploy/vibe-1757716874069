@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive NFT Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a0a0a;
+            color: #e2e2e2;
+            scroll-behavior: smooth;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #7e22ce, #facc15);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .section {
+            padding: 4rem 2rem;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #7e22ce, #6b21a8);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #6b21a8, #7e22ce);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="flex justify-between items-center p-6 bg-[#18181b]">
+        <h1 class="text-2xl font-bold gradient-text">NFT Marketplace</h1>
+        <div class="space-x-4">
+            <a href="#marketplace" class="text-white hover:text-[#7e22ce]">Marketplace</a>
+            <a href="#showcase" class="text-white hover:text-[#7e22ce]">Showcase</a>
+            <a href="#analytics" class="text-white hover:text-[#7e22ce]">Analytics</a>
+            <a href="#portfolio" class="text-white hover:text-[#7e22ce]">Portfolio</a>
+            <a href="#community" class="text-white hover:text-[#7e22ce]">Community</a>
+            <a href="#tutorials" class="text-white hover:text-[#7e22ce]">Tutorials</a>
+            <a href="#rewards" class="text-white hover:text-[#7e22ce]">Rewards</a>
+            <a href="#testnet" class="text-white hover:text-[#7e22ce]">Testnet</a>
+            <a href="#dapps" class="text-white hover:text-[#7e22ce]">dApps</a>
+        </div>
+    </nav>
+
+    <!-- Marketplace Integration Section -->
+    <section id="marketplace" class="section bg-[#18181b]">
+        <h2 class="text-3xl font-bold mb-8">Marketplace</h2>
+        <div class="flex flex-wrap gap-4 mb-8">
+            <button class="btn-primary">All Items</button>
+            <button class="border border-[#7e22ce] px-4 py-1 rounded">Art</button>
+            <button class="border border-[#7e22ce] px-4 py-1 rounded">Collectibles</button>
+            <button class="border border-[#7e22ce] px-4 py-1 rounded">Virtual Worlds</button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-[#242424] p-4 rounded-lg">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/cd4d84a6-290e-4a62-981b-d62532e1140c.png" alt="NFT artwork" class="w-full mb-2 rounded">
+                <h3 class="text-lg font-bold mb-2">Cyberpunk #2356</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-[#facc15]">1.2 ETH</span>
+                    <button class="text-[#7e22ce] font-bold">Buy</button>
+                </div>
+            </div>
+            <!-- More NFT items here -->
+        </div>
+        <button class="btn-primary">Load More</button>
+    </section>
+
+    <!-- NFT Showcase Section -->
+    <section id="showcase" class="section bg-[#242424]">
+        <h2 class="text-3xl font-bold mb-6">My Gallery</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-[#18181b] p-3 rounded-lg">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b5c4c1c0-8840-4b70-8da9-d91bb5e9b3a3.png" alt="My NFT Collection 1" class="w-full rounded">
+            </div>
+            <div class="bg-[#18181b] p-3 rounded-lg">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7683e14b-8239-4a40-a421-d26e1d4e0b82.png" alt="My NFT Collection 2" class="w-full rounded">
+            </div>
+            <!-- 2 more items -->
+        </div>
+        <button class="btn-primary">Add New NFT</button>
+    </section>
+
+    <!-- Analytics Dashboard Section -->
+    <section id="analytics" class="section bg-[#18181b]">
+        <h2 class="text-3xl font-bold mb-6">Portfolio Analytics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-[#242424] p-4 rounded-lg">
+                <h3 class="text-lg font-bold mb-2 text-[#facc15]">Portfolio Value</h3>
+                <p class="text-2xl">42.5 ETH</p>
+                <p class="text-[#a1a1aa] text-sm">+15.2% last 30 days</p>
+            </div>
+            <div class="bg-[#242424] p-4 rounded-lg">
+                <h3 class="text-lg font-bold mb-2 text-[#facc15]">Top Performing</h3>
+                <p class="text-xl">Cyberpunk #2356</p>
+                <p class="text-[#a1a1aa] text-sm">+320% since purchase</p>
+            </div>
+        </div>
+        <button class="btn-primary">View Detailed Analytics</button>
+    </section>
+
+    <!-- Portfolio Management Section -->
+    <section id="portfolio" class="section bg-[#242424]">
+        <h2 class="text-3xl font-bold mb-6">My Portfolio Vault</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-[#18181b] p-4 rounded-lg border border-dashed border-[#7e22ce] text-center">
+                <button class="w-16 h-16 bg-[#7e22ce] rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </button>
+                <h3 class="font-bold mb-1">Add New Collection</h3>
+            </div>
+            
+            <!-- Sample collection -->
+            <div class="bg-[#18181b] p-4 rounded-lg">
+                <div class="flex items-start mb-3">
+                    <div class="w-12 h-12 bg-[#7e22ce30] rounded-lg flex items-center justify-center mr-3">
+                        <span>🎨</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Digital Art</h3>
+                        <p class="text-sm text-[#a1a1aa]">8 items</p>
+                    </div>
+                </div>
+                <button class="text-xs text-[#7e22ce] mt-2">Manage</button>
+            </div>
+        </div>
+        <button class="btn-primary">View Full Portfolio</button>
+    </section>
+
+    <!-- Community Section -->
+    <section id="community" class="section bg-[#18181b]">
+        <h2 class="text-3xl font-bold mb-6">NFT Community</h2>
+        <div class="mb-6 bg-[#242424] p-4 rounded-lg">
+            <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 rounded-full bg-[#7e22ce] flex items-center justify-center">
+                    <span class="font-bold">JD</span>
+                </div>
+                <div>
+                    <h3 class="font-bold">Jane Doe</h3>
+                    <p class="text-sm mb-2">Just sold my Cyberpunk for 5 ETH profit!</p>
+                    <div class="flex space-x-2">
+                        <button class="text-xs px-2 py-1 bg-[#7e22ce] rounded">Like</button>
+                        <button class="text-xs px-2 py-1 border border-[#7e22ce] rounded">Reply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-primary">View All Discussions</button>
+    </section>
+
+    <!-- Tutorial/Learning Hub Section -->
+    <section id="tutorials" class="section bg-[#242424]">
+        <h2 class="text-3xl font-bold mb-6">Learning Center</h2>
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-[#18181b] p-4 rounded-lg">
+                <h3 class="text-lg font-bold mb-2 text-[#facc15]">NFT Basics</h3>
+                <p class="mb-3">Learn how NFTs work from the ground up</p>
+                <button class="text-[#7e22ce] text-sm">Start Lesson</button>
+            </div>
+            <div class="bg-[#18181b] p-4 rounded-lg">
+                <h3 class="text-lg font-bold mb-2 text-[#facc15]">Creating NFTs</h3>
+                <p class="mb-3">Step-by-step guide to minting your first NFT</p>
+                <button class="text-[#7e22ce] text-sm">Start Lesson</button>
+            </div>
+        </div>
+        <button class="btn-primary">View All Tutorials</button>
+    </section>
+
+    <!-- Rewards System Section -->
+    <section id="rewards" class="section bg-[#18181b]">
+        <h2 class="text-3xl font-bold mb-6">Rewards Hub</h2>
+        
+        <div class="mb-6 p-4 bg-[#242424] rounded-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold">My Reward Points</h3>
+                <div class="flex items-center">
+                    <span class="mr-2 text-[#facc15] font-bold">1,250</span>
+                    <span class="text-xs bg-[#facc1510] text-[#facc15] px-2 py-1 rounded">VIP Level 2</span>
+                </div>
+            </div>
+            
+            <div class="flex overflow-x-auto gap-4 pb-2">
+                <!-- Reward cards -->
+                <div class="flex-shrink-0 w-48 bg-[#18181b] p-3 rounded-lg border border-[#7e22ce]">
+                    <div class="w-10 h-10 bg-[#7e22ce] rounded-full flex items-center justify-center mb-2">
+                        <span>🎁</span>
+                    </div>
+                    <h4 class="font-bold text-sm mb-1">Exclusive NFT Drop</h4>
+                    <p class="text-xs text-[#a1a1aa] mb-2">Unlocks at 2000 points</p>
+                    <div class="h-1 bg-[#242424] rounded-full">
+                        <div class="h-1 bg-[#7e22ce] rounded-full" style="width: 62.5%"></div>
+                    </div>
+                </div>
+                
+                <div class="flex-shrink-0 w-48 bg-[#18181b] p-3 rounded-lg">
+                    <div class="w-10 h-10 bg-[#facc1520] rounded-full flex items-center justify-center mb-2">
+                        <span>💎</span>
+                    </div>
+                    <h4 class="font-bold text-sm mb-1">VIP Badge</h4>
+                    <p class="text-xs text-[#a1a1aa] mb-2">Unlocks at 3000 points</p>
+                    <div class="h-1 bg-[#242424] rounded-full">
+                        <div class="h-1 bg-[#facc15] rounded-full" style="width: 41.6%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn-primary">Claim Available Rewards</button>
+    </section>
+
+    <!-- Testnet Sandbox Section -->
+    <section id="testnet" class="section bg-[#242424]">
+        <h2 class="text-3xl font-bold mb-6">Blockchain Playground</h2>
+        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-[#18181b] p-4 rounded-lg border border-[#7e22ce]">
+                <div class="flex items-start mb-3">
+                    <div class="w-10 h-10 bg-[#7e22ce] rounded-full flex items-center justify-center mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-[#facc15]">Token Lab</h3>
+                        <p class="text-sm text-[#a1a1aa]">Create and manage test tokens</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm mb-1">Token Name</label>
+                        <input type="text" placeholder="MyTestToken" class="w-full bg-[#242424] border border-[#7e22ce]/50 rounded px-3 py-2">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm mb-1">Supply</label>
+                            <input type="number" value="1000" class="w-full bg-[#242424] border border-[#7e22ce]/50 rounded px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Decimals</label>
+                            <input type="number" value="18" class="w-full bg-[#242424] border border-[#7e22ce]/50 rounded px-3 py-2">
+                        </div>
+                    </div>
+                    <button class="btn-primary w-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Deploy Token
+                    </button>
+                </div>
+                
+                <div id="tokens-list" class="mt-4 border-t border-[#7e22ce] pt-4">
+                    <h4 class="text-sm font-bold mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
+                        </svg>
+                        Your Tokens
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-2 bg-[#242424] rounded hover:bg-[#2a2a2a]">
+                            <div>
+                                <span class="font-medium">TTK</span>
+                                <span class="text-xs text-[#a1a1aa] ml-2">1,000 supply</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="text-xs text-[#7e22ce] bg-[#7e22ce]/10 px-2 py-1 rounded">Send</button>
+                                <button class="text-xs text-[#facc15] bg-[#facc15]/10 px-2 py-1 rounded">Mint</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-[#18181b] p-4 rounded-lg border border-[#facc15]">
+                <div class="flex items-start mb-3">
+                    <div class="w-10 h-10 bg-[#facc15] rounded-full flex items-center justify-center mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-[#18181b]">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-6.829m3.018-2.482l4.043-4.041a2.539 2.539 0 013.59 3.59l-4.04 4.043m-3.018 2.482l-1.71 2.071a1 1 0 01-1.579-.128l-2.67-3.544" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-[#facc15]">Mining Network</h3>
+                        <p class="text-sm text-[#a1a1aa]">Simulate blockchain mining</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4 space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span>Mining Rig:</span>
+                        <span class="font-bold">GPU Miner v1.0</span>
+                    </div>
+                    <div class="h-2 bg-[#242424] rounded-full overflow-hidden">
+                        <div id="mining-bar" class="h-full bg-gradient-to-r from-[#7e22ce] to-[#facc15] rounded-full transition-all duration-300" style="width:0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span>Hashrate: <span id="mining-power" class="font-bold">1</span> MH/s</span>
+                        <span>Blocks: <span id="blocks-mined" class="font-bold">0</span></span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-[#242424] p-3 rounded-lg">
+                        <div class="text-xs mb-1">Test Coins</div>
+                        <div id="test-coins" class="text-lg font-bold text-[#facc15]">0</div>
+                    </div>
+                    <div class="bg-[#242424] p-3 rounded-lg">
+                        <div class="text-xs mb-1">Upgrade Cost</div>
+                        <div class="text-lg font-bold">100 <span class="text-sm">TKN</span></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="start-mining" class="btn-primary flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                        </svg>
+                        Start Mining
+                    </button>
+                    <button id="upgrade-miner" class="bg-[#facc15] text-[#18181b] font-bold py-2 px-4 rounded flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                        Upgrade
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration with dApps Section -->
+    <section id="dapps" class="section bg-[#18181b]">
+        <h2 class="text-3xl font-bold mb-4">Integration with dApps</h2>
+        <p>Access to platforms like CoinGecko, Galxe, and MetaSchool.</p>
+        <button class="btn-primary">Explore dApps</button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-6 bg-[#18181b] text-center">
+        <p>&copy; 2023 NFT Marketplace. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Marketplace functionality
+            document.querySelectorAll('#marketplace button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if(this.textContent === 'Buy') {
+                        // Simulate purchase flow
+                        const nftName = this.closest('.bg-[#242424]').querySelector('h3').textContent;
+                        const confirmPurchase = confirm(`Purchase ${nftName}?`);
+                        if(confirmPurchase) {
+                            alert('Wallet connected! Transaction submitted.');
+                        }
+                    } else if(this.textContent === 'Load More') {
+                        fetch('https://api.example.com/nfts?limit=3') // Mock API endpoint
+                            .then(response => {
+                                const marketplace = document.querySelector('#marketplace .grid');
+                                // Add 3 new NFT items
+                                for(let i = 0; i < 3; i++) {
+                                    marketplace.innerHTML += `
+                                        <div class="bg-[#242424] p-4 rounded-lg">
+                                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/new-nft-${i}.png" alt="New NFT ${i}" class="w-full mb-2 rounded">
+                                            <h3 class="text-lg font-bold mb-2">New Collection #${Math.floor(Math.random()*1000)}</h3>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-[#facc15]">${(Math.random()*3).toFixed(1)} ETH</span>
+                                                <button class="text-[#7e22ce] font-bold">Buy</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading NFTs:', error);
+                                alert('Failed to load more NFTs');
+                            });
+                    } else {
+                        // Category filter buttons
+                        const category = this.textContent;
+                        alert(`Filtering by ${category}...`);
+                    }
+                });
+            });
+
+            // Gallery functionality
+            document.querySelector('#showcase .btn-primary').addEventListener('click', function() {
+                const gallery = document.querySelector('#showcase .grid');
+                const numItems = gallery.children.length + 1;
+                gallery.innerHTML += `
+                    <div class="bg-[#18181b] p-3 rounded-lg">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/new-gallery-nft-${numItems}.png" alt="Gallery NFT ${numItems}" class="w-full rounded">
+                        <div class="mt-2 flex justify-between items-center">
+                            <span class="text-sm text-[#a1a1aa]">My NFT ${numItems}</span>
+                            <button class="text-xs text-[#7e22ce]">Share</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Gallery share buttons
+            document.querySelector('#showcase').addEventListener('click', function(e) {
+                if(e.target.textContent === 'Share') {
+                    const nftDiv = e.target.closest('.bg-[#18181b]');
+                    const nftName = nftDiv.querySelector('span').textContent;
+                    prompt(`${nftName} sharing link:`, `https://nftmarketplace.com/share/${nftName}`);
+                }
+            });
+
+            // Analytics button
+            document.querySelector('#analytics .btn-primary').addEventListener('click', function() {
+                alert('Analytics dashboard will load here');
+            });
+
+            // Portfolio button
+            document.querySelector('#portfolio .btn-primary').addEventListener('click', function() {
+                alert('Portfolio management will open here');
+            });
+
+            // Community functionality
+            document.querySelector('#community .btn-primary').addEventListener('click', function() {
+                window.location.href = '#community';
+                document.querySelector('#community .bg-[#242424]').scrollIntoView();
+            });
+
+            // Discussion interaction
+            document.querySelector('#community').addEventListener('click', function(e) {
+                if(e.target.textContent === 'Like') {
+                    const likeBtn = e.target;
+                    likeBtn.textContent = 'Liked!';
+                    likeBtn.style.backgroundColor = '#facc15';
+                    likeBtn.style.color = '#18181b';
+                } else if(e.target.textContent === 'Reply') {
+                    const replyText = prompt('Enter your reply:');
+                    if(replyText) {
+                        alert(`Reply posted: "${replyText}"`);
+                    }
+                }
+            });
+
+            // Tutorial functionality
+            document.querySelectorAll('#tutorials button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if(this.textContent.includes('Start Lesson')) {
+                        const lessonTitle = this.closest('.bg-[#18181b]').querySelector('h3').textContent;
+                        alert(`Starting lesson: ${lessonTitle}`);
+                    } else if(this.textContent.includes('View All')) {
+                        // Simulate loading all tutorials
+                        const tutorialsContainer = document.querySelector('#tutorials .grid');
+                        tutorialsContainer.innerHTML = `
+                            <div class="bg-[#18181b] p-4 rounded-lg col-span-2">
+                                <h3 class="text-xl font-bold mb-3 text-[#facc15]">Browse All Lessons</h3>
+                                <ul class="list-disc pl-5">
+                                    <li>NFT Basics for Beginners</li>
+                                    <li>Creating Your First NFT</li>
+                                    <li>Selling Strategies</li>
+                                    <li>Market Analysis</li>
+                                </ul>
+                                <button class="btn-primary mt-4">Select Lesson</button>
+                            </div>
+                        `;
+                    }
+                });
+            });
+
+            // Rewards button
+            document.querySelector('#rewards .btn-primary').addEventListener('click', function() {
+                alert('Rewards page will load here');
+            });
+
+            // Testnet functionality
+            let miningInterval;
+            let miningPower = 1;
+            let testCoins = 0;
+            let blocksMined = 0;
+            const miningHistory = [];
+            
+            document.querySelector('#testnet #start-mining').addEventListener('click', function() {
+                const miningBtn = this;
+                if (miningBtn.textContent === 'Start Mining') {
+                    miningBtn.textContent = 'Stop Mining';
+                    miningBtn.classList.add('bg-red-600');
+                    
+                    // Simulate mining progress
+                    let progress = 0;
+                    miningInterval = setInterval(() => {
+                        progress = (progress + miningPower * 5) % 100;
+                        const coinsFound = Math.floor(Math.random() * miningPower);
+                        testCoins += coinsFound;
+                        blocksMined++;
+                        
+                        // Add to mining history
+                        miningHistory.push({
+                            timestamp: new Date().toLocaleTimeString(),
+                            coins: coinsFound,
+                            power: miningPower
+                        });
+                        
+                        document.getElementById('mining-bar').style.width = `${progress}%`;
+                        document.getElementById('test-coins').textContent = testCoins;
+                        document.getElementById('blocks-mined').textContent = blocksMined;
+                        
+                        // Update history display
+                        const historyDiv = document.getElementById('mining-history');
+                        historyDiv.innerHTML = miningHistory.map(item => `
+                            <div class="flex justify-between text-sm py-1 border-b border-[#242424]">
+                                <span>${item.timestamp}</span>
+                                <span class="text-[#facc15]">+${item.coins} coins</span>
+                                <span>${item.power} MH/s</span>
+                            </div>
+                        `).join('');
+                    }, 500);
+                } else {
+                    miningBtn.textContent = 'Start Mining';
+                    miningBtn.classList.remove('bg-red-600');
+                    clearInterval(miningInterval);
+                }
+            });
+
+            document.querySelector('#upgrade-miner').addEventListener('click', function() {
+                if (testCoins >= 100) {
+                    miningPower += 1;
+                    testCoins -= 100;
+                    document.getElementById('mining-power').textContent = miningPower;
+                    document.getElementById('test-coins').textContent = testCoins;
+                } else {
+                    alert('You need at least 100 test coins to upgrade!');
+                }
+            });
+
+            // Token factory functionality
+            document.querySelector('#testnet button:contains("Deploy Token")').addEventListener('click', function() {
+                const tokenName = document.querySelector('#testnet input[placeholder="MyTestToken"]').value.trim();
+                const tokenSymbol = document.querySelector('#testnet input[placeholder="MTT"]').value.trim();
+                const supply = document.querySelector('#testnet input[type="number"][value="1000"]').value;
+                
+                if (tokenName && tokenSymbol) {
+                    const tokenList = document.getElementById('tokens-list');
+                    const tokens = tokenList.querySelector('.space-y-2');
+                    
+                    const tokenDiv = document.createElement('div');
+                    tokenDiv.className = 'flex items-center justify-between p-2 bg-[#242424] rounded hover:bg-[#2a2a2a]';
+                    tokenDiv.innerHTML = `
+                        <div>
+                            <span class="font-medium">${tokenSymbol}</span>
+                            <span class="text-xs text-[#a1a1aa] ml-2">${supply} supply (${tokenName})</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="text-xs text-[#7e22ce] bg-[#7e22ce]/10 px-2 py-1 rounded">Send</button>
+                            <button class="mint-token text-xs text-[#facc15] bg-[#facc15]/10 px-2 py-1 rounded" 
+                                    data-symbol="${tokenSymbol}" 
+                                    data-supply="${supply}">
+                                Mint
+                            </button>
+                        </div>
+                    `;
+                    tokens.appendChild(tokenDiv);
+                    
+                    // Add minting functionality
+                    tokenDiv.querySelector('.mint-token').addEventListener('click', function() {
+                        const currentSpan = this.parentElement.parentElement.querySelector('span.text-xs');
+                        const currentSupply = parseInt(currentSpan.textContent.split(' ')[0]);
+                        const newSupply = currentSupply + 1000;
+                        currentSpan.textContent = `${newSupply} supply (${tokenName})`;
+                        alert(`Minted 1000 additional ${tokenSymbol} tokens!`);
+                    });
+                }
+            });
+
+            // dApps button
+            document.querySelector('#dapps .btn-primary').addEventListener('click', function() {
+                alert('dApps integration will be shown here');
+            });
+        });
+    </script>
+</body>
+</html>
