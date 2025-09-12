@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-Powered Web IDE</title>
+
+  <!-- Monaco AMD loader MUST be present. Load first. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #333;
+      --text-primary: #d4d4d4;
+      --text-secondary: #ccc;
+      --accent: #007acc;
+      --accent-hover: #005f9e;
+      --border: #3e3e42;
+      --error: #f44747;
+      --success: #4caf50;
+      --warning: #ffcb6b;
+      --ai-accent: #9c27b0;
+      --github-accent: #238636;
+
+      --sidebar-width: 240px;
+      --ai-width: 300px;
+      --preview-width: 40%;
+      --header-height: 52px;
+      --status-height: 26px;
+    }
+
+    body.light-theme {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f3f3f3;
+      --bg-tertiary: #dddddd;
+      --text-primary: #1e1e1e;
+      --text-secondary: #333333;
+      --border: #cccccc;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex; flex-direction: column;
+      height: 100vh;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      height: var(--header-height);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 10px; background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border); gap: 10px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo { font-weight: 600; }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .btn {
+      background: var(--bg-tertiary); color: var(--text-primary);
+      border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px;
+      cursor: pointer; font-size: 13px; transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #3a3a3a; border-color: #555; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn.ai { background: var(--ai-accent); border-color: var(--ai-accent); color: #fff; }
+    .btn.github { background: var(--github-accent); border-color: var(--github-accent); color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Main layout */
+    .main-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) var(--ai-width) 1fr minmax(300px, var(--preview-width));
+      grid-template-rows: 1fr;
+      min-height: 0;
+    }
+
+    /* Sidebar */
+    .sidebar { border-right: 1px solid var(--border); background: var(--bg-secondary); display: flex; flex-direction: column; min-width: 0; }
+    .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border); }
+    .sidebar-title { font-weight: 600; }
+    .collapse-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--text-primary);
+      border-radius: 4px; padding: 2px 6px; cursor: pointer;
+    }
+    .file-tree { padding: 8px; overflow: auto; flex: 1; }
+
+    /* AI Panel */
+    .ai-panel { border-right: 1px solid var(--border); background: var(--bg-secondary); display: flex; flex-direction: column; min-width: 0; }
+    .ai-header { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border); }
+    .ai-content { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+    .ai-tabs { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid var(--border); }
+    .ai-tab { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+    .ai-tab.active { background: var(--bg-tertiary); }
+    .ai-chat, .ai-generator { display: none; height: 100%; }
+    .ai-chat.active, .ai-generator.active { display: flex; flex-direction: column; }
+    .ai-messages { flex: 1; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .ai-message { background: var(--bg-tertiary); padding: 8px; border-radius: 6px; border: 1px solid var(--border); white-space: pre-wrap; }
+    .ai-message.user { align-self: flex-end; background: #2d3a4a; }
+    .ai-input-area { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--border); }
+    .ai-input { flex: 1; min-height: 40px; max-height: 120px; resize: vertical; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); }
+    .generator-section { padding: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .generator-title { font-weight: 600; }
+
+    /* Editor area */
+    .editor-area { display: flex; flex-direction: column; min-width: 0; background: var(--bg-primary); border-right: 1px solid var(--border); }
+    .tab-bar { height: 36px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 8px; gap: 8px; color: var(--text-secondary); }
+    .editor-container { position: relative; flex: 1; min-height: 0; }
+    #editor { position: absolute; inset: 0; }
+
+    /* Console */
+    .console { border-top: 1px solid var(--border); background: #111; color: #ddd; max-height: 40%; transition: max-height .2s ease; display: flex; flex-direction: column; }
+    .console.collapsed { max-height: 0; border-top: none; overflow: hidden; }
+    .console-header { display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .console-content { padding: 8px; overflow: auto; flex: 1; white-space: pre-wrap; }
+
+    /* Preview */
+    .preview-area { display: flex; flex-direction: column; min-width: 0; background: var(--bg-secondary); }
+    .preview-header { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border); }
+    .preview-content { flex: 1; min-height: 0; }
+    .preview-iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+    /* Status bar */
+    .status-bar { height: var(--status-height); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+    .github-status.disconnected { color: var(--warning); }
+    .github-status.connected { color: var(--success); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 999;
+    }
+    .modal {
+      background: var(--bg-secondary); padding: 20px; border-radius: 8px; border: 1px solid var(--border);
+      width: 90%; max-width: 400px;
+    }
+    .modal-header { font-size: 16px; font-weight: bold; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-input {
+      width: 100%; padding: 8px; background: var(--bg-primary); color: var(--text-primary);
+      border: 1px solid var(--border); border-radius: 4px; font-size: 14px;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      :root { --ai-width: 0px; }
+      .ai-panel { display: none; }
+    }
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+      }
+      .sidebar { order: 1; }
+      .ai-panel { order: 2; display: none; }
+      .editor-area { order: 3; }
+      .preview-area { order: 4; height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GitHub Token Modal -->
+<div class="modal-overlay" id="github-token-modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">🔐 Connect to GitHub</div>
+    <div class="form-group">
+      <label for="github-token" class="form-label">Personal Access Token:</label>
+      <input type="password" class="form-input" id="github-token" placeholder="ghp_xxxxxxxx">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeTokenModal()">Cancel</button>
+      <button class="btn primary" onclick="saveToken()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- OpenAI API Key Modal -->
+<div class="modal-overlay" id="openai-key-modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">🤖 Connect to OpenAI</div>
+    <div class="form-group">
+      <label for="openai-key" class="form-label">API Key:</label>
+      <input type="password" class="form-input" id="openai-key" placeholder="sk-...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeOpenAIKeyModal()">Cancel</button>
+      <button class="btn primary" onclick="saveOpenAIKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🧠 AI Web IDE</div>
+    <div class="toolbar">
+      <button class="btn" id="new-file-btn">📄 New</button>
+      <button class="btn" id="save-btn">💾 Save</button>
+      <button class="btn" id="export-btn">📤 Export</button>
+      <button class="btn ai" id="ai-generate-btn">⚡ Generator</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="btn github" id="github-connect-btn">🐙 GitHub</button>
+    <button class="btn github" id="deploy-btn" disabled>🚀 Deploy</button>
+    <button class="btn" id="format-btn">✨ Format</button>
+    <button class="btn" id="theme-btn">🎨 Theme</button>
+    <button class="btn primary" id="run-btn">▶️ Run</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main-container">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Files</div>
+      <button class="collapse-btn" id="sidebar-toggle">‹</button>
+    </div>
+    <div class="file-tree" id="file-tree"></div>
+  </div>
+
+  <!-- AI Panel -->
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-header">
+      <span>🤖 AI Assistant</span>
+      <button class="collapse-btn" id="ai-toggle">›</button>
+    </div>
+    <div class="ai-content">
+      <div class="ai-tabs">
+        <div class="ai-tab active" data-tab="chat">💬 Chat</div>
+        <div class="ai-tab" data-tab="generator">⚡ Generator</div>
+      </div>
+
+      <div class="ai-chat active" id="ai-chat">
+        <div class="ai-messages" id="ai-messages">
+          <div class="ai-message assistant">
+👋 Hi! I’m your AI coding assistant.
+• Generate code
+• Fix bugs
+• Explain logic
+          </div>
+        </div>
+        <div class="ai-input-area">
+          <textarea class="ai-input" id="ai-chat-input" placeholder="Ask me anything..."></textarea>
+          <button class="btn ai" id="ai-send-btn">Send</button>
+        </div>
+      </div>
+
+      <div class="ai-generator" id="ai-generator">
+        <div class="generator-section">
+          <div class="generator-title">🎨 UI Components</div>
+          <button class="btn ai" onclick="generateCode('ui-component')">Generate</button>
+        </div>
+        <div class="generator-section">
+          <div class="generator-title">📊 Charts</div>
+          <button class="btn ai" onclick="generateCode('chart')">Generate</button>
+        </div>
+        <div class="generator-section">
+          <div class="generator-title">🎮 Interactivity</div>
+          <button class="btn ai" onclick="generateCode('interactive')">Generate</button>
+        </div>
+        <div class="generator-section">
+          <div class="generator-title">🔧 Utilities</div>
+          <button class="btn ai" onclick="generateCode('utility')">Generate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor-area">
+    <div class="tab-bar" id="tab-bar">index.html • style.css</div>
+    <div class="editor-container"><div id="editor"></div></div>
+    <div class="console collapsed" id="console">
+      <div class="console-header" id="console-toggle">
+        <span>Console</span>
+        <button class="btn" id="clear-console-btn">Clear</button>
+      </div>
+      <div class="console-content" id="console-content"></div>
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-area" id="preview-area">
+    <div class="preview-header">
+      <div>Live Preview</div>
+      <button class="collapse-btn" id="toggle-preview-btn">›</button>
+    </div>
+    <div class="preview-content">
+      <iframe class="preview-iframe" id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Status -->
+<div class="status-bar">
+  <div><span id="status-message">Loading…</span></div>
+  <div><span class="github-status disconnected" id="github-status">GitHub: Disconnected</span></div>
+</div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  if (!window.require) {
+    console.error("RequireJS/Monaco AMD loader not loaded");
+    document.getElementById("status-message").textContent = "Error: Monaco loader failed";
+    return;
+  }
+
+  // Safe storage wrapper (handles SecurityError on some browsers/contexts)
+  window.storage = (() => {
+    try {
+      const ls = window.localStorage;
+      const k="__test__"; ls.setItem(k,"1"); ls.removeItem(k);
+      return ls;
+    } catch (e) {
+      console.warn("localStorage unavailable, using in-memory storage", e);
+      const mem = {};
+      return {
+        getItem: (k) => (k in mem ? mem[k] : null),
+        setItem: (k,v) => { mem[k] = String(v) },
+        removeItem: (k) => { delete mem[k] }
+      };
+    }
+  })();
+
+  // Helper to load a script and resolve when ready
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src; s.async = true; s.onload = resolve; s.onerror = () => reject(new Error("Failed to load " + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  // Load a UMD script while temporarily disabling AMD 'define' to avoid Monaco conflicts
+  async function loadUMDNoAMD(srcs) {
+    const savedDefine = window.define;
+    try {
+      // Temporarily disable AMD detection for UMD libs
+      Object.defineProperty(window, "define", { value: undefined, configurable: true });
+    } catch { window.define = undefined; }
+    try {
+      for (const src of srcs) await loadScript(src);
+    } finally {
+      // Restore AMD define
+      if (savedDefine) {
+        try {
+          Object.defineProperty(window, "define", { value: savedDefine, configurable: true });
+        } catch { window.define = savedDefine; }
+      } else {
+        try { delete window.define; } catch {}
+      }
+    }
+  }
+
+  require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" } });
+
+  class AIWebIDE {
+    constructor() {
+      this.files = new Map();
+      this.models = new Map();
+      this.activeFile = null;
+      this.githubToken = window.storage.getItem("gh_token") || null;
+      this.openAIKey = window.storage.getItem("openai_key") || null;
+      this.lastPreviewURL = null;
+      this.previewDebounce = null;
+      this.prettierReady = false;
+      this.jszipReady = false;
+
+      this.dom = {
+        editor: document.getElementById("editor"),
+        preview: document.getElementById("preview-iframe"),
+        aiInput: document.getElementById("ai-chat-input"),
+        aiSendBtn: document.getElementById("ai-send-btn"),
+        aiMessages: document.getElementById("ai-messages"),
+        githubBtn: document.getElementById("github-connect-btn"),
+        deployBtn: document.getElementById("deploy-btn"),
+        themeBtn: document.getElementById("theme-btn"),
+        formatBtn: document.getElementById("format-btn"),
+        runBtn: document.getElementById("run-btn"),
+        exportBtn: document.getElementById("export-btn"),
+        statusMessage: document.getElementById("status-message"),
+        githubStatus: document.getElementById("github-status"),
+        newFileBtn: document.getElementById("new-file-btn"),
+        saveBtn: document.getElementById("save-btn"),
+        sidebar: document.getElementById("sidebar"),
+        sidebarToggle: document.getElementById("sidebar-toggle"),
+        aiPanel: document.getElementById("ai-panel"),
+        aiToggle: document.getElementById("ai-toggle"),
+        previewArea: document.getElementById("preview-area"),
+        previewToggle: document.getElementById("toggle-preview-btn"),
+        aiTabs: document.querySelectorAll(".ai-tab"),
+        aiChat: document.getElementById("ai-chat"),
+        aiGen: document.getElementById("ai-generator"),
+        aiGenerateBtn: document.getElementById("ai-generate-btn"),
+        console: document.getElementById("console"),
+        consoleToggle: document.getElementById("console-toggle"),
+        clearConsoleBtn: document.getElementById("clear-console-btn"),
+        fileTree: document.getElementById("file-tree"),
+        consoleContent: document.getElementById("console-content"),
+      };
+
+      // Mirror window errors into the in-app console (handy on mobile)
+      window.addEventListener("error", (e) => this.logToConsole("Error: " + e.message));
+
+      this.init();
+    }
+
+    async init() {
+      await this.initMonaco();
+      this.loadSavedOrDefaults();
+      this.setupEvents();
+      this.updateFileTree();
+      this.updatePreview(true);
+      this.restoreStatus();
+      setInterval(() => this.autoSave(), 5000);
+      this.setStatus("Ready");
+    }
+
+    initMonaco() {
+      return new Promise((resolve) => {
+        require(["vs/editor/editor.main"], () => {
+          this.editor = monaco.editor.create(this.dom.editor, {
+            value: "",
+            language: "html",
+            theme: "vs-dark",
+            automaticLayout: true,
+            fontSize: 13,
+            wordWrap: "on",
+            minimap: { enabled: false },
+          });
+
+          // Debounce preview updates while typing
+          this.editor.onDidChangeModelContent(() => {
+            clearTimeout(this.previewDebounce);
+            this.previewDebounce = setTimeout(() => this.updatePreview(), 300);
+          });
+
+          resolve();
+        });
+      });
+    }
+
+    loadSavedOrDefaults() {
+      const saved = window.storage.getItem("project_files");
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          Object.entries(state).forEach(([name, { content, language }]) => {
+            this.addFile(name, content, language);
+          });
+          const first = Object.keys(state)[0];
+          this.openFile(state["index.html"] ? "index.html" : first);
+          return;
+        } catch (e) {
+          console.warn("Failed to load saved files, falling back to defaults.", e);
+        }
+      }
+      this.setupDefaultFiles();
+    }
+
+    setupDefaultFiles() {
+      const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello</title>
+  </head>
+  <body>
+    <h1>👋 Hello World</h1>
+    <p>Edit index.html or style.css and tap ▶️ Run.</p>
+  </body>
+</html>`;
+      const css = `body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f6f7f9; color: #222; padding: 1.25rem; } h1 { color: #007acc; }`;
+
+      this.addFile("index.html", html, "html");
+      this.addFile("style.css", css, "css");
+      this.openFile("index.html");
+    }
+
+    addFile(name, content, lang) {
+      const existing = this.models.get(name);
+      if (existing) existing.dispose();
+      const model = monaco.editor.createModel(content, lang);
+      this.files.set(name, { language: lang });
+      this.models.set(name, model);
+    }
+
+    detectLanguageFromExt(name) {
+      const ext = (name.split(".").pop() || "").toLowerCase();
+      if (ext === "html" || ext === "htm") return "html";
+      if (ext === "css") return "css";
+      if (ext === "js" || ext === "mjs" || ext === "cjs") return "javascript";
+      if (ext === "json") return "json";
+      if (ext === "md") return "markdown";
+      return "plaintext";
+    }
+
+    openFile(name) {
+      const model = this.models.get(name);
+      if (!model) return;
+      this.editor.setModel(model);
+      this.activeFile = name;
+      this.setStatus(`Opened ${name}`);
+    }
+
+    updateFileTree() {
+      const container = this.dom.fileTree;
+      container.innerHTML = "";
+      for (const name of this.models.keys()) {
+        const item = document.createElement("div");
+        item.textContent = name;
+        item.style.cursor = "pointer";
+        item.style.padding = "4px 6px";
+        item.onclick = () => this.openFile(name);
+        if (name === this.activeFile) {
+          item.style.background = "rgba(255,255,255,0.06)";
+          item.style.borderRadius = "6px";
+        }
+        container.appendChild(item);
+      }
+    }
+
+    buildPreviewHTML(html, css) {
+      const styleTag = `<style>${css || ""}</style>`;
+      if (html.includes("</head>")) return html.replace("</head>", `${styleTag}\n</head>`);
+      if (html.includes("</body>")) return html.replace("</body>", `${styleTag}\n</body>`);
+      return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    ${styleTag}
+  </head>
+  <body>
+    ${html}
+  </body>
+</html>`;
+    }
+
+    updatePreview(initial = false) {
+      const html = this.models.get("index.html")?.getValue() || "";
+      const css = this.models.get("style.css")?.getValue() || "";
+      const finalDoc = this.buildPreviewHTML(html, css);
+      const blob = new Blob([finalDoc], { type: "text/html" });
+
+      if (this.lastPreviewURL) URL.revokeObjectURL(this.lastPreviewURL);
+      this.lastPreviewURL = URL.createObjectURL(blob);
+      this.dom.preview.src = this.lastPreviewURL;
+
+      if (!initial) this.setStatus("Preview updated");
+    }
+
+    setupEvents() {
+      // AI chat
+      this.dom.aiSendBtn.onclick = () => this.sendAIMessage();
+      this.dom.aiInput.onkeydown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.sendAIMessage(); }
+      };
+
+      // Header buttons
+      this.dom.githubBtn.onclick = () => openTokenModal();
+      this.dom.exportBtn.onclick = () => this.exportZip();
+      this.dom.formatBtn.onclick = () => this.formatCode();
+      this.dom.themeBtn.onclick = () => this.toggleTheme();
+      this.dom.runBtn.onclick = () => this.updatePreview();
+      this.dom.deployBtn.onclick = () => this.deployToGitHub();
+      this.dom.newFileBtn.onclick = () => this.createNewFile();
+      this.dom.saveBtn.onclick = () => this.manualSave();
+      this.dom.aiGenerateBtn.onclick = () => { this.showAIPanel(true); this.switchAITab("generator"); };
+
+      // Toggles
+      this.dom.sidebarToggle.onclick = () => {
+        const el = this.dom.sidebar;
+        el.style.display = (el.style.display === "none") ? "flex" : "none";
+      };
+      this.dom.aiToggle.onclick = () => {
+        const el = this.dom.aiPanel;
+        el.style.display = (el.style.display === "none") ? "flex" : "none";
+      };
+      this.dom.previewToggle.onclick = () => {
+        const el = this.dom.previewArea;
+        el.style.display = (el.style.display === "none") ? "flex" : "none";
+      };
+
+      // Console
+      this.dom.consoleToggle.onclick = () => { this.dom.console.classList.toggle("collapsed"); };
+      this.dom.clearConsoleBtn.onclick = () => { this.dom.consoleContent.textContent = ""; };
+
+      // AI tabs
+      this.dom.aiTabs.forEach(tab => tab.addEventListener("click", () => this.switchAITab(tab.dataset.tab)));
+    }
+
+    switchAITab(name) {
+      this.dom.aiTabs.forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+      this.dom.aiChat.classList.toggle("active", name === "chat");
+      this.dom.aiGen.classList.toggle("active", name === "generator");
+    }
+
+    showAIPanel(forceOpen = false) {
+      if (forceOpen) this.dom.aiPanel.style.display = "flex";
+      else this.dom.aiPanel.style.display = (this.dom.aiPanel.style.display === "none") ? "flex" : "none";
+    }
+
+    async ensurePrettier() {
+      if (this.prettierReady && window.prettier) return;
+      // Load Prettier (standalone + HTML + PostCSS parsers) without AMD
+      await loadUMDNoAMD([
+        "https://unpkg.com/prettier@2.8.8/standalone.js",
+        "https://unpkg.com/prettier@2.8.8/parser-html.js",
+        "https://unpkg.com/prettier@2.8.8/parser-postcss.js"
+      ]);
+      this.prettierReady = !!window.prettier;
+    }
+
+    async ensureJSZip() {
+      if (this.jszipReady && window.JSZip) return;
+      await loadUMDNoAMD([
+        "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+      ]);
+      this.jszipReady = !!window.JSZip;
+    }
+
+    async sendAIMessage() {
+      const msg = this.dom.aiInput.value.trim();
+      if (!msg) return;
+      this.addMessage("user", msg);
+      this.dom.aiInput.value = "";
+
+      if (!this.openAIKey) { openOpenAIKeyModal(); return; }
+
+      try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${this.openAIKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: msg }]
+          })
+        });
+
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const data = await res.json();
+        const reply = data.choices?.[0]?.message?.content || "No response.";
+        this.addMessage("assistant", reply);
+      } catch (err) {
+        this.addMessage("assistant", "⚠️ API error: " + err.message);
+      }
+    }
+
+    addMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `ai-message ${role}`;
+      div.textContent = text;
+      this.dom.aiMessages.appendChild(div);
+      this.dom.aiMessages.scrollTop = this.dom.aiMessages.scrollHeight;
+    }
+
+    async formatCode() {
+      const model = this.editor.getModel();
+      if (!model) return;
+      await this.ensurePrettier();
+      if (!window.prettier) { this.setStatus("Prettier failed to load"); return; }
+
+      const lang = model.getLanguageId();
+      let parser = null;
+      if (lang === "html" || lang === "handlebars") parser = "html";
+      else if (lang === "css" || lang === "scss" || lang === "less") parser = "css";
+      else { this.setStatus("Format: unsupported language"); return; }
+
+      const plugins = [];
+      if (window.prettierPlugins) {
+        if (Array.isArray(window.prettierPlugins)) plugins.push(...window.prettierPlugins);
+        else plugins.push(...Object.values(window.prettierPlugins));
+      }
+
+      try {
+        const formatted = window.prettier.format(model.getValue(), { parser, plugins });
+        model.setValue(formatted);
+        this.setStatus("Formatted");
+      } catch (e) {
+        console.error(e);
+        this.logToConsole(String(e));
+        this.setStatus("Format error");
+      }
+    }
+
+    toggleTheme() {
+      const light = document.body.classList.toggle("light-theme");
+      monaco.editor.setTheme(light ? "vs" : "vs-dark");
+      this.setStatus(light ? "Light theme" : "Dark theme");
+    }
+
+    autoSave() {
+      const state = {};
+      for (let [name, model] of this.models) {
+        state[name] = {
+          content: model.getValue(),
+          language: model.getLanguageId()
+        };
+      }
+      try { window.storage.setItem("project_files", JSON.stringify(state)); } catch {}
+      this.setStatus("Autosaved");
+    }
+
+    manualSave() {
+      this.autoSave();
+      this.setStatus("Saved");
+    }
+
+    restoreStatus() {
+      if (this.githubToken) {
+        this.dom.githubStatus.textContent = "GitHub: Connected";
+        this.dom.githubStatus.classList.remove("disconnected");
+        this.dom.githubStatus.classList.add("connected");
+        this.dom.deployBtn.disabled = false;
+      } else {
+        this.dom.githubStatus.textContent = "GitHub: Disconnected";
+        this.dom.githubStatus.classList.remove("connected");
+        this.dom.githubStatus.classList.add("disconnected");
+        this.dom.deployBtn.disabled = true;
+      }
+    }
+
+    async exportZip() {
+      await this.ensureJSZip();
+      if (!window.JSZip) { this.setStatus("JSZip failed to load"); return; }
+      const zip = new window.JSZip();
+      for (let [name, model] of this.models) {
+        zip.file(name, model.getValue());
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "project.zip";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    async deployToGitHub() {
+      if (!this.githubToken) return openTokenModal();
+      const repo = prompt("Enter repo (user/repo):");
+      if (!repo) return;
+
+      try {
+        const html = this.models.get("index.html")?.getValue() || "";
+        const b64 = btoa(unescape(encodeURIComponent(html)));
+
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${this.githubToken}`,
+            Accept: "application/vnd.github.v3+json"
+          },
+          body: JSON.stringify({ message: "Deploy from AI IDE", content: b64 })
+        });
+
+        if (!res.ok) throw new Error("GitHub push failed");
+        alert("✅ Deployed to GitHub!");
+        this.setStatus("Deployed");
+      } catch (err) {
+        alert("❌ Deployment error: " + err.message);
+        this.setStatus("Deploy error");
+      }
+    }
+
+    createNewFile() {
+      const name = prompt("New file name (e.g., script.js, about.html, styles.css):");
+      if (!name) return;
+      if (this.models.has(name)) { alert("A file with that name already exists."); return; }
+      const lang = this.detectLanguageFromExt(name);
+      const boilerplate = lang === "html" ? "<!-- New HTML file -->\n" :
+                          lang === "css" ? "/* New CSS file */\n" :
+                          lang === "javascript" ? "// New JS file\n" : "";
+      this.addFile(name, boilerplate, lang);
+      this.openFile(name);
+      this.updateFileTree();
+      this.autoSave();
+    }
+
+    setStatus(msg) {
+      this.dom.statusMessage.textContent = msg;
+    }
+
+    logToConsole(msg) {
+      this.dom.console.classList.remove("collapsed");
+      this.dom.consoleContent.textContent += (this.dom.consoleContent.textContent ? "\n" : "") + msg;
+    }
+  }
+
+  // Modal helpers (GLOBAL)
+  window.openTokenModal = () => {
+    document.getElementById("github-token-modal").style.display = "flex";
+  };
+  window.saveToken = () => {
+    const val = document.getElementById("github-token").value.trim();
+    if (val) {
+      try { window.storage.setItem("gh_token", val); } catch {}
+      document.getElementById("github-token-modal").style.display = "none";
+      if (window.ide) { window.ide.githubToken = val; window.ide.restoreStatus(); }
+    }
+  };
+  window.closeTokenModal = () => {
+    document.getElementById("github-token-modal").style.display = "none";
+  };
+
+  window.openOpenAIKeyModal = () => {
+    document.getElementById("openai-key-modal").style.display = "flex";
+  };
+  window.saveOpenAIKey = () => {
+    const key = document.getElementById("openai-key").value.trim();
+    if (key) {
+      try { window.storage.setItem("openai_key", key); } catch {}
+      document.getElementById("openai-key-modal").style.display = "none";
+      if (window.ide) { window.ide.openAIKey = key; window.ide.setStatus("OpenAI key saved"); }
+    }
+  };
+  window.closeOpenAIKeyModal = () => {
+    document.getElementById("openai-key-modal").style.display = "none";
+  };
+
+  window.generateCode = (type) => {
+    const sample = {
+      "ui-component": "<button class='btn'>Generated Button</button>",
+      "chart": "<canvas id='chart' width='320' height='200'></canvas>\n<script>\nconst c=document.getElementById('chart');const ctx=c.getContext('2d');ctx.fillStyle='#007acc';for(let i=0;i<10;i++){ctx.fillRect(i*32,200-Math.random()*180,20,200);}<\/script>",
+      "interactive": "<script>alert('Interactive!')<\/script>",
+      "utility": "function sum(a, b) { return a + b; }\nconsole.log('sum(2,3)=', sum(2,3));"
+    };
+    if (window.ide?.editor) {
+      const model = window.ide.editor.getModel();
+      model.setValue(sample[type] || "// Unknown");
+    }
+  };
+
+  // Boot the IDE
+  window.ide = new AIWebIDE();
+});
+</script>
+</body>
+</html>
